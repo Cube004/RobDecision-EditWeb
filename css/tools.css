@@ -1,0 +1,105 @@
+.tools {
+    position: fixed;
+    left: 22px;
+    top: calc(50% - 350.8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 10px 6px;
+    border: 1px solid #EAEAEA;
+    transition: all 0.3s ease;
+}
+
+.tools:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* 工具项样式 */
+.tools > .tools-item {
+    margin: 6px 0;
+    position: relative;
+}
+
+/* 工具按钮样式 */
+.tools-item > button {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    padding: 0;
+    background-color: transparent;
+    color: #666;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+/* 按钮悬停效果 */
+.tools-item > button:hover {
+    background-color: #F5F5F5;
+    color: #333;
+}
+
+/* 按钮激活效果 */
+.tools-item > button.active {
+    background-color: #EBF5FF;
+    color: #1890FF;
+}
+
+/* 图标大小控制 */
+.tools-item > button img {
+    width: 22px;
+    height: 22px;
+    transition: transform 0.2s ease;
+}
+
+.tools-item > button svg {
+    width: 22px;
+    height: 22px;
+    transition: transform 0.2s ease;
+}
+
+/* 图标悬停放大效果 */
+.tools-item > button:hover img,
+.tools-item > button:hover svg {
+    transform: scale(1.1);
+}
+
+/* 分隔线 */
+.tools-item.divider {
+    width: 28px;
+    height: 1px;
+    background-color: #EAEAEA;
+    margin: 8px 0;
+}
+
+/* 工具提示 */
+.tools-item > button::after {
+    content: attr(title);
+    position: absolute;
+    left: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+.tools-item > button:hover::after {
+    opacity: 1;
+    visibility: visible;
+    left: 54px;
+}

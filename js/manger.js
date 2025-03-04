@@ -3,10 +3,11 @@ let lastscale = 1;
 let scale = 1;
 
 
+
 class ObjectManager{
     constructor(){
-        this.NodecontainerId = "Nodecontainer";
-        this.EdgecontainerId = "Edgecontainer";
+        this.NodecontainerId = "nodeContainer";
+        this.EdgecontainerId = "edgeContainer";
         this.NodeList = [];
         this.EdgeList = [];
         this.menu_node = null;
@@ -30,9 +31,9 @@ class ObjectManager{
 
     }
 
-    addNode(x, y, width, height, borderRadius, border, bordercolor, color){
+    addNode(x, y, width, height, borderRadius, border, borderColor, color){
         let node_id =  "Node_" + this.NodeList.length;
-        this.NodeList.push(new Node(this.NodecontainerId, x, y, width, height, borderRadius, border, bordercolor, color, node_id, this));
+        this.NodeList.push(new Node(this.NodecontainerId, x, y, width, height, borderRadius, border, borderColor, color, node_id, this));
     }
 
     deleteNode(id) {
@@ -92,16 +93,18 @@ class ObjectManager{
 }
 
 class Node{
-    constructor(containerId, x, y, width, height, borderRadius, border, bordercolor, color, id, manager){
+    constructor(containerId, x, y, width, height, borderRadius, border, borderColor, color, id, manager, borderOpacity = 100, fillOpacity = 100){
         this.containerId = containerId;
         this.left = x;
         this.top = y;
         this.width = width;
         this.height = height;
         this.borderRadius = borderRadius;
-        this.bordercolor = bordercolor;
+        this.borderColor = borderColor;
         this.color = color;
         this.border = border;
+        this.borderOpacity = borderOpacity;
+        this.fillOpacity = fillOpacity;
         this.id = id;
         this.font = {
             size: 12,
@@ -131,18 +134,29 @@ class Node{
         this.UpdateView()
 
         button.addEventListener("mouseenter", () => {
-            button.style.border = `${this.border * scale * 2}px solid ${this.bordercolor}`
+            button.style.border = `${this.border * scale * 2}px solid ${this.borderColor}`
         });
     
         button.addEventListener("mouseleave", () => {
-            button.style.border = `${this.border * scale}px solid ${this.bordercolor}`
+            button.style.border = `${this.border * scale}px solid ${this.borderColor}`
         });
 
         button.addEventListener("click", () => {
             menu.style.display = menu.style.display != 'flex' ? 'flex' : 'none'
             if (this.manager.menu_node != this && menu.style.display === 'none') menu.style.display = 'flex'
-            
+            if (this.menu.style.display === 'flex') {
+                setTimeout(() => {
+                    menu.classList.add('active');
+                }, 10);
+            }else{
+                menu.classList.remove('active');
+                // 等待过渡结束后隐藏菜单
+                setTimeout(() => {
+                    menu.style.display = 'none';
+                }, 250); // 与过渡时间相匹配
+            }
             this.manager.menu_node = this
+            menuManager.setNode(this);
             menu.style.position = 'absolute'
             menu.style.left = `${this.left * scale + this.width * scale / 2 - menu.offsetWidth / 2}px`
             menu.style.top = `${this.top * scale + this.height * scale + gridSize * scale}px`
@@ -160,21 +174,21 @@ class Node{
         button.style.top = `${this.top * scale}px`
 
         button.style.borderRadius = `${this.borderRadius * scale}px`
-        button.style.border = `${this.border * scale}px solid ${this.bordercolor}`
+        button.style.border = `${this.border * scale}px solid ${this.borderColor}`
         button.style.backgroundColor = this.color
-
+        button.style.opacity = `${this.fillOpacity / 100}`
         button.style.fontSize = `${this.font.size * scale}px`
         button.style.color = this.font.color
         button.style.fontFamily = 'Arial, sans-serif'
     }
 
-    changestyle(x, y, width, height, borderRadius, border, bordercolor, color){
+    changestyle(x, y, width, height, borderRadius, border, borderColor, color){
         this.left = x;
         this.top = y;
         this.width = width;
         this.height = height;
         this.borderRadius = borderRadius;
-        this.bordercolor = bordercolor;
+        this.borderColor = borderColor;
         this.color = color;
         this.border = border;
         this.UpdateView()

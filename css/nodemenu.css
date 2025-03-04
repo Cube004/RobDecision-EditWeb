@@ -1,0 +1,84 @@
+.menu {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 6px 8px;
+    /* display: none; */
+    position: absolute;
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* 当菜单显示时的状态 */
+.menu.active {
+    display: flex;
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.menu-item {
+    position: relative;
+    margin: 0 2px;
+}
+
+.menu-item:not(:last-child) {
+    margin-right: 8px;
+    padding-right: 8px;
+    border-right: 1px solid #EEEEEE;
+}
+
+.menu-item > button {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    margin: 0px;
+    padding: 0;
+    width: 40px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    gap: 4px;
+    background-color: #FFFFFF;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+}
+
+.menu-item > button:hover {
+    background: #f0f0f0;
+}
+
+.menu-item > button:active {
+    background: #e5e5e5;
+    transform: scale(0.97);
+}
+
+.menu-item > button .icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.menu-item > button .unline {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.1s ease-out;
+    transform: rotate(-180deg);
+}
+
+.menu-item > button:hover > .unline {
+    animation: rotate180 0.1s ease-out forwards;
+}
+
+@keyframes rotate180 {
+    from {
+        transform: rotate(-180deg);
+    }
+    to {
+        transform: rotate(0);
+    }
+}

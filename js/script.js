@@ -32,21 +32,7 @@ drawGrid(canvases.background);
 
 
 Manager = new ObjectManager();
-// window.scrollTo({
-//   top: 500,
-//   left: 3000,
-//   behavior: 'smooth' // 可选，使滚动平滑
-// });
 
-
-// window.addEventListener('mousemove', (e) => {
-//   // const scrollPositionX = window.scrollX || window.pageXOffset;
-//   // const scrollPositionY = window.scrollY || window.pageYOffset;
-
-//   // console.log(scrollPositionX, scrollPositionY); 
-//   console.log(e.offsetX, e.offsetY);
-//   // console.log(e.clientX, e.clientY);
-// })
 
 
 

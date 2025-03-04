@@ -57,10 +57,11 @@ function previewLine(e){
 
     if (e.type === 'mousedown') {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        previewLine.isDrawing = false; // 结束绘制
+        // 循环绘制
         console.log(previewLine.start, previewLine.end);
         Manager.addLine([{x: previewLine.start[0] / scale, y: previewLine.start[1] / scale}, 
-                         {x: previewLine.end[0] / scale, y: previewLine.end[1] / scale}]);
+            {x: previewLine.end[0] / scale, y: previewLine.end[1] / scale}]);
+        previewLine.start = previewLine.end;
     }
 }
 
@@ -100,12 +101,8 @@ function previewRect(e){
     if (e.type === 'mousedown') {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         previewRect.isDrawing = false; // 结束绘制
-        // NodeList.push(
-        //     new Node("NodeList", left_x / scale, left_y / scale, width / scale, height / scale, 
-        //     20, 2, "#333", "#f0f0f0", getdataid()))
         Manager.addNode(left_x / scale, left_y / scale, width / scale, height / scale, 
-            20, 2, "#333", "#f0f0f0");
-        strokeRoundRect(ctxs.storage, left_x, left_y, width, height, 20 * scale, 0);
+            20, 2, "#000000", "#f1f3f4");
     }
 }
 
