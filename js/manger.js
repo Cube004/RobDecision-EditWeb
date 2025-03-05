@@ -106,10 +106,11 @@ class Node{
         this.borderOpacity = borderOpacity;
         this.fillOpacity = fillOpacity;
         this.id = id;
-        this.font = {
+        this.text = {
             size: 12,
             color: "#000000",
-            Text: ""
+            content: `Node ${this.id}`,
+            fontFamily : 'Arial, sans-serif'
         }
         this.task = {
             
@@ -127,7 +128,7 @@ class Node{
         
         button.className = 'node'      // 继承之前定义的样式
         button.setAttribute('data-id', this.id) // 设置自定义属性
-        button.textContent = `Node ${this.id}` // 默认文本
+        button.textContent = this.text.content
         
         container.appendChild(button)
         
@@ -177,9 +178,11 @@ class Node{
         button.style.border = `${this.border * scale}px solid ${this.borderColor}`
         button.style.backgroundColor = this.color
         button.style.opacity = `${this.fillOpacity / 100}`
-        button.style.fontSize = `${this.font.size * scale}px`
-        button.style.color = this.font.color
-        button.style.fontFamily = 'Arial, sans-serif'
+
+        button.textContent = this.text.content
+        button.style.fontSize = `${this.text.size * scale}px`
+        button.style.color = this.text.color
+        button.style.fontFamily = this.text.fontFamily
     }
 
     changestyle(x, y, width, height, borderRadius, border, borderColor, color){

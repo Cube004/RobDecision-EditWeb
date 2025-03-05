@@ -1,4 +1,3 @@
-// 添加滑动条渐变效果
 document.getElementById('opacity-slider').addEventListener('input', function() {
     this.style.setProperty('--value', this.value + '%');
     document.getElementById('opacity-value').textContent = this.value + '%';
@@ -217,6 +216,8 @@ let borderColorPicker = new ColorPicker({
 
 class MenuManager {
     constructor() {
+        this.menu = document.getElementById('menu')
+
         // 位置
         this.x = 0;
         this.y = 0;
@@ -241,41 +242,204 @@ class MenuManager {
         
         // 当前选中的节点
         this.selectedNode = null;
+        
+        // 添加文本属性相关的DOM引用
+        this.textInput = document.getElementById('node-text');
+        this.fontSizeInput = document.getElementById('font-size');
+        this.textColorOptions = document.querySelectorAll('#textProperties .color-option');
+        
+        // 修改圆角相关的DOM引用
+        this.radiusPreset = document.getElementById('radius-preset');
+        this.customRadius = document.getElementById('custom-radius');
+        this.customRadiusGroup = document.getElementById('custom-radius-group');
+        
+        // 修改删除按钮相关的DOM引用
+        this.deleteButton = document.getElementById('delete-button');
+        this.deleteConfirm = document.querySelector('.delete-confirm-content');
+        this.confirmButton = document.querySelector('.confirm-button');
+        
+        // 添加文本菜单的引用
+        this.textProperties = document.getElementById('textProperties');
+        this.textPropertiesContent = document.querySelector('.text-properties-content');
+        
+        this.initTextProperties();
+        this.initTextPropertiesHover();
+        this.initBorderRadius();
+        this.initDeleteConfirm();
+    }
+    
+    initTextProperties() {
+        // 文本内容变化监听
+        this.textInput.addEventListener('input', () => {
+            this.setText(this.textInput.value);
+        });
+        
+        // 字体大小变化监听
+        this.fontSizeInput.addEventListener('input', () => {
+            this.setText(undefined, undefined, parseInt(this.fontSizeInput.value));
+        });
+        
+        // 文本颜色选择监听
+        this.textColorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                this.setText(undefined, option.dataset.color);
+                // 更新选中状态
+                this.textColorOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+    }
+    
+    initTextPropertiesHover() {
+        let isHovered = false;
+        let isComposing = false;
+        let closeTimeout = null;  // 添加延时变量
+        
+        // 监听输入法组合事件
+        this.textInput.addEventListener('compositionstart', () => {
+            isComposing = true;
+        });
+        
+        this.textInput.addEventListener('compositionend', () => {
+            isComposing = false;
+        });
+        
+        // 监听菜单项的hover
+        this.textProperties.addEventListener('mouseenter', () => {
+            if (closeTimeout) {
+                clearTimeout(closeTimeout);  // 清除延时关闭
+            }
+            isHovered = true;
+            this.textPropertiesContent.classList.add('show');
+        });
+        
+        this.textProperties.addEventListener('mouseleave', (e) => {
+            isHovered = false;
+            // 设置延时关闭
+            closeTimeout = setTimeout(() => {
+                if (!isHovered && !isComposing) {
+                    this.textPropertiesContent.classList.remove('show');
+                }
+            }, 100);  // 100ms的延迟
+        });
+        
+        // 监听内容区域的hover
+        this.textPropertiesContent.addEventListener('mouseenter', () => {
+            if (closeTimeout) {
+                clearTimeout(closeTimeout);  // 清除延时关闭
+            }
+            isHovered = true;
+        });
+        
+        this.textPropertiesContent.addEventListener('mouseleave', (e) => {
+            isHovered = false;
+            // 设置延时关闭
+            closeTimeout = setTimeout(() => {
+                if (!isHovered && !isComposing) {
+                    this.textPropertiesContent.classList.remove('show');
+                }
+            }, 100);  // 100ms的延迟
+        });
+        
+        // 监听文档点击，但在输入过程中不关闭
+        document.addEventListener('click', (e) => {
+            if (!isComposing && 
+                !this.textProperties.contains(e.target) && 
+                !this.textPropertiesContent.contains(e.target)) {
+                this.textPropertiesContent.classList.remove('show');
+            }
+        });
+    }
+    
+    initBorderRadius() {
+        // 预设圆角选择事件
+        this.radiusPreset.addEventListener('change', () => {
+            const value = this.radiusPreset.value;
+            if (value === 'custom') {
+                this.customRadiusGroup.style.display = 'flex';
+                this.setBorderRadius(parseInt(this.customRadius.value));
+            } else {
+                this.customRadiusGroup.style.display = 'none';
+                this.setBorderRadius(parseInt(value) * gridSize);
+            }
+        });
+        
+        // 自定义圆角输入事件
+        this.customRadius.addEventListener('input', () => {
+            this.setBorderRadius(parseInt(this.customRadius.value));
+        });
+    }
+    
+    // 更新文本属性显示
+    updateTextProperties() {
+        if (this.selectedNode) {
+            this.textInput.value = this.selectedNode.text.content || '';
+            this.fontSizeInput.value = this.selectedNode.text.size || 14;
+            
+            // 更新T图标颜色
+            const icon = document.querySelector(`svg[data-id="T-icon"]`);
+            // 将RGB颜色转换为十六进制
+            const textColor = this.selectedNode.text.color || 'rgb(102, 102, 102)';
+            
+            if (textColor.startsWith('rgb')) {
+                const rgb = textColor.match(/\d+/g);
+                if (rgb && rgb.length === 3) {
+                    const hexColor = '#' + rgb.map(x => {
+                        const hex = parseInt(x).toString(16);
+                        return hex.length === 1 ? '0' + hex : hex;
+                    }).join('');
+                    icon.style.fill = hexColor;
+                }
+            } else {
+                icon.style.fill = textColor;
+            }
+            // 更新文本颜色选中状态
+            this.textColorOptions.forEach(option => {
+                const optionColor = option.dataset.color;
+                // 将选项的十六进制颜色转换为RGB进行比较
+                const r = parseInt(optionColor.slice(1, 3), 16);
+                const g = parseInt(optionColor.slice(3, 5), 16);
+                const b = parseInt(optionColor.slice(5, 7), 16);
+                const rgbColor = `rgb(${r}, ${g}, ${b})`;
+                option.classList.toggle('selected', rgbColor === this.selectedNode.text.color);
+            });
+        }
     }
     
     // 更新选中的节点
     setNode(node) {
-        
         this.selectedNode = node;
         if (node) {
-            this.updateFromNode(node);
+            this.updateFromNode();
+            this.updateColorPickers();
+            this.updateTextProperties();
+            this.updateBorderRadius();
         }
-        this.updateColorPickers();
     }
     
     // 从节点更新菜单数据
-    updateFromNode(node) {
+    updateFromNode() {
         // 位置
-        this.x = node.x;
-        this.y = node.y;
+        this.x = this.selectedNode.x;
+        this.y = this.selectedNode.y;
         
         // 大小
-        this.width = node.width;
-        this.height = node.height;
+        this.width = this.selectedNode.width;
+        this.height = this.selectedNode.height;
         
         // 样式
-        this.borderRadius = node.borderRadius;
-        this.borderWidth = node.borderWidth;
-        this.borderColor = node.borderColor;
-        this.borderOpacity = node.borderOpacity;
-        this.color = node.color;
-        this.fillOpacity = node.fillOpacity;
+        this.borderRadius = this.selectedNode.borderRadius;
+        this.borderWidth = this.selectedNode.borderWidth;
+        this.borderColor = this.selectedNode.borderColor;
+        this.borderOpacity = this.selectedNode.borderOpacity;
+        this.color = this.selectedNode.color;
+        this.fillOpacity = this.selectedNode.fillOpacity;
         
         // 文本
-        this.text = node.text;
-        this.textColor = node.textColor;
-        this.fontSize = node.fontSize;
-        this.fontFamily = node.fontFamily;
+        this.text = this.selectedNode.text.content;
+        this.textColor = this.selectedNode.text.color;
+        this.fontSize = this.selectedNode.text.size;
+        this.fontFamily = this.selectedNode.text.fontFamily;
     }
     
     // 更新颜色选择器显示
@@ -295,13 +459,12 @@ class MenuManager {
             this.selectedNode.borderRadius = this.borderRadius;
             this.selectedNode.width = this.width;
             this.selectedNode.height = this.height;
-            this.selectedNode.text = this.text;
-            this.selectedNode.textColor = this.textColor;
-            this.selectedNode.fontSize = this.fontSize;
-            this.selectedNode.fontFamily = this.fontFamily;
-            
+            this.selectedNode.text.size = this.fontSize
+            this.selectedNode.text.color = this.textColor
+            this.selectedNode.text.content = this.text
+
             // 触发节点更新
-            this.selectedNode.update();
+            this.selectedNode.UpdateView();
         }
     }
     
@@ -328,10 +491,46 @@ class MenuManager {
     // 更新文本属性
     setText(text, color, size, family) {
         if (text !== undefined) this.text = text;
-        if (color !== undefined) this.textColor = color;
+        if (color !== undefined) {
+            this.textColor = color;
+            const icon = document.querySelector(`svg[data-id="T-icon"]`);
+            icon.style.fill = color;
+        }
         if (size !== undefined) this.fontSize = size;
         if (family !== undefined) this.fontFamily = family;
         this.UpdateView();
+    }
+    
+    // 更新圆角显示
+    updateBorderRadius() {
+        if (this.selectedNode) {
+            const radius = this.selectedNode.borderRadius;
+            const gridRadius = radius / gridSize;
+            
+            // 检查是否匹配预设值
+            if (Number.isInteger(gridRadius) && gridRadius >= 0 && gridRadius <= 3) {
+                this.radiusPreset.value = gridRadius.toString();
+                this.customRadiusGroup.style.display = 'none';
+            } else {
+                this.radiusPreset.value = 'custom';
+                this.customRadiusGroup.style.display = 'flex';
+            }
+            
+            this.customRadius.value = radius;
+        }
+    }
+    
+    initDeleteConfirm() {
+        // 确认删除按钮点击事件
+        this.confirmButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (this.selectedNode) {
+                Manager.deleteNode(this.selectedNode.id);
+                delete this.selectedNode
+                this.selectedNode = null;
+            }
+            this.menu.style.display = 'none';
+        });
     }
 }
 

@@ -430,3 +430,275 @@ select:hover {
     background: linear-gradient(to right, #4285f4 var(--value), #e8eaed var(--value));
     border-radius: 2px;
 }
+
+/* 修改文本属性菜单的显示逻辑 */
+.text-properties-content {
+    display: none;
+    position: absolute;
+    left: -250%;
+    top: 135%;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 16px;
+    min-width: 240px;
+    z-index: 1000;
+}
+
+/* 添加新的显示类 */
+.text-properties-content.show {
+    display: block;
+}
+
+.text-input-section {
+    margin-bottom: 16px;
+}
+
+.text-input-label {
+    font-size: 13px;
+    color: #5f6368;
+    margin-bottom: 8px;
+}
+
+#node-text {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.text-style-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.text-size-control, .text-color-control {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-label {
+    font-size: 13px;
+    color: #5f6368;
+}
+
+.size-input-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#font-size {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.unit {
+    line-height: 32px;
+    color: #5f6368;
+    font-size: 13px;
+}
+
+/* 圆角属性菜单样式 */
+.radius-properties-content {
+    display: none;
+    position: absolute;
+    left: -250%;
+    top: 135%;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 16px;
+    min-width: 240px;
+    z-index: 1000;
+}
+
+.radius-properties-content::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: transparent;
+}
+
+#borderRadius:hover .radius-properties-content,
+.radius-properties-content:hover {
+    display: block;
+}
+
+.radius-presets {
+    margin-bottom: 16px;
+}
+
+.radius-options {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.radius-option {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.radius-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.radius-custom {
+    border-top: 1px solid #eee;
+    padding-top: 16px;
+}
+
+.radius-input-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+}
+
+#custom-radius {
+    width: 60px;
+    height: 32px;
+    padding: 4px 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* 修改圆角选择器的样式 */
+.radius-select-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+#radius-preset {
+    min-width: 80px;
+    height: 32px;
+    padding: 4px 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 13px;
+    background-color: white;
+    cursor: pointer;
+}
+
+#radius-preset:focus {
+    outline: none;
+    border-color: #4285f4;
+}
+
+.radius-input-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+}
+
+#custom-radius {
+    width: 60px;
+    height: 32px;
+    padding: 4px 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+#custom-radius:focus {
+    outline: none;
+    border-color: #4285f4;
+}
+
+/* 修改删除确认菜单样式 */
+.delete-confirm-content {
+    display: none;
+    position: absolute;
+    left: -450%;
+    top: 135%;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 16px;
+    min-width: 240px;
+    z-index: 1000;
+}
+
+.delete-confirm-content::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: transparent;
+}
+
+#delete:hover .delete-confirm-content,
+.delete-confirm-content:hover {
+    display: block;
+}
+
+.delete-message {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.warning-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.message-text {
+    flex-grow: 1;
+}
+
+.message-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #202124;
+    margin-bottom: 4px;
+}
+
+.message-desc {
+    font-size: 13px;
+    color: #5f6368;
+}
+
+.confirm-button {
+    width: 100%;
+    padding: 8px 0;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    background: #f44336;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.confirm-button:hover {
+    background: #d32f2f;
+}
+
+.confirm-button:active {
+    transform: scale(0.98);
+}
