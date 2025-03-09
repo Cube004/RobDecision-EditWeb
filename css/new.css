@@ -1,0 +1,222 @@
+/* 状态提示栏样式 */
+.status-bar {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    border: 1px solid #eaeaea;
+    max-width: 400px;
+    min-width: 200px;
+}
+
+.status-bar.active {
+    background-color: rgba(242, 253, 255, 0.98);
+    border-color: #4285f4;
+}
+
+.status-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-icon img, 
+.status-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.status-text {
+    font-size: 14px;
+    color: #5f6368;
+    flex-grow: 1;
+    text-align: center;
+}
+
+/* 状态栏动画 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px) translateX(-50%); }
+    to { opacity: 1; transform: translateY(0) translateX(-50%); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0) translateX(-50%); }
+    to { opacity: 0; transform: translateY(-10px) translateX(-50%); }
+}
+
+.status-bar.show {
+    animation: fadeIn 0.3s forwards;
+}
+
+.status-bar.hide {
+    animation: fadeOut 0.3s forwards;
+}
+
+/* 边缘编辑菜单样式 */
+.edge-menu {
+    z-index: 1001;
+}
+
+/* 线条粗细选择器 */
+.width-properties-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 220px;
+    display: none;
+    z-index: 1002;
+}
+
+.menu-item > button:hover + .width-properties-content,
+.width-properties-content:hover {
+    display: block;
+}
+
+.width-presets {
+    margin-bottom: 8px;
+}
+
+.width-select-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.width-select-group select {
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.width-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.width-input-group input {
+    width: 60px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+/* 方向反转确认 */
+.direction-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 220px;
+    display: none;
+    z-index: 1002;
+}
+
+.menu-item > button:hover + .direction-content,
+.direction-content:hover {
+    display: block;
+}
+
+.direction-message {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/* 条件设置 */
+.condition-properties-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 250px;
+    display: none;
+    z-index: 1002;
+}
+
+.menu-item > button:hover + .condition-properties-content,
+.condition-properties-content:hover {
+    display: block;
+}
+
+.condition-input-section {
+    margin-bottom: 12px;
+}
+
+.condition-input-label {
+    font-size: 14px;
+    color: #5f6368;
+    margin-bottom: 6px;
+}
+
+.condition-properties-content textarea {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    resize: vertical;
+    font-size: 14px;
+}
+
+.condition-type-section {
+    margin-top: 12px;
+}
+
+.condition-type-options {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.condition-type-options label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #5f6368;
+    cursor: pointer;
+}
+
+.condition-type-options input {
+    margin: 0;
+}
+
+/* 通用按钮样式 */
+.confirm-button {
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.2s;
+}
+
+.confirm-button:hover {
+    background-color: #3367d6;
+}

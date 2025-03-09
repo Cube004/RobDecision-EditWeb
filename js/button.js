@@ -1,59 +1,66 @@
-function renderTaskNode(button){
-    canvases.operate.addEventListener('mousemove', previewRect);
-    canvases.operate.addEventListener('mousedown', previewRect);
-    console.log("添加监听成功");
-    canvases.operate.style.display = "block";
+import {previewEdit} from './graph.js';
+import {drawGrid} from './graph.js';
+import state from './script.js';
+import Manager from './manager.js';
+
+export function renderTaskNode(button){
+    previewEdit.startDrawRect();
+    state.canvases.operate.style.display = "block";
 }
 
-function cursor(button){
-    canvases.operate.removeEventListener('mousemove', previewLine);
-    canvases.operate.removeEventListener('mousedown', previewLine);
-    canvases.operate.removeEventListener('mousemove', previewRect);
-    canvases.operate.removeEventListener('mousedown', previewRect);
-    console.log("移除监听成功");
-    canvases.operate.style.display = "none";
+export function cursor(button){
+    previewEdit.stopDrawLine();
+    previewEdit.stopDrawRect();
+    state.canvases.operate.style.display = "none";
 }
 
-function renderNodeEdge(button){
-    canvases.operate.addEventListener('mousemove', previewLine);
-    canvases.operate.addEventListener('mousedown', previewLine);
-    console.log("添加监听成功");
-    canvases.operate.style.display = "block";
+export function renderNodeEdge(button){
+    previewEdit.startDrawLine();
+    state.canvases.operate.style.display = "block";
 }
 
 function Zoom(event){
-    lastscale = scale;
-
-    origin_pos = {
-        x: event.offsetX / scale,
-        y: event.offsetY / scale,
+    state.lastscale = state.scale;
+    
+    var origin_pos = {
+        x: event.offsetX / state.scale,
+        y: event.offsetY / state.scale,
     }
 
-    event.deltaY < 0 ? scale += 0.1 : scale -= 0.1;
+    event.deltaY < 0 ? state.scale += 0.1 : state.scale -= 0.1;
 
-    scale = Math.max(Math.min(scale, 2),0.5);
+    state.scale = Math.max(Math.min(state.scale, 2),0.5);
 
-    Object.values(canvases).forEach(canvas => {
-        canvas.width = gridSize * gridNumberX * scale;
-        canvas.height = gridSize * gridNumberY * scale;
+    Object.values(state.canvases).forEach(canvas => {
+        canvas.width = state.gridSize * state.gridNumberX * state.scale;
+        canvas.height = state.gridSize * state.gridNumberY * state.scale;
     });
     
-    target ={
-        x: Math.max(origin_pos.x * scale - window.innerWidth / 2,0),
-        y: Math.max(origin_pos.y * scale - window.innerHeight / 2,0),
+    var target ={
+        x: Math.max(origin_pos.x * state.scale - window.innerWidth / 2,0),
+        y: Math.max(origin_pos.y * state.scale - window.innerHeight / 2,0),
     }
     
     window.scrollTo({
         top: target.y,
         left: target.x,
     });
-    
-    //重新绘制网格线和图形
-    drawGrid(canvases.background);
-
-    // drawNodes(); //重新绘制节点
+    drawGrid(state.canvases.background);
+    Manager.updatescale();
 }
+
+document.addEventListener('contextmenu', function(event) {
+    event.preventDefault(); // 阻止默认行为,鼠标右键被屏蔽
+    // 用于取消绘制返回选择功能
+    const cursorButton = document.getElementById("cursor")
+    if (cursorButton) {
+        cursorButton.click();
+    }
+});
 
 
 window.addEventListener('wheel', Zoom);
+window.renderTaskNode = renderTaskNode;
+window.cursor = cursor;
+window.renderNodeEdge = renderNodeEdge;
 

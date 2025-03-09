@@ -8,14 +8,20 @@
   <link rel="stylesheet" href="./css/tools.css">
   <link rel="stylesheet" href="./css/nodemenu.css">
   <link rel="stylesheet" href="./css/color-section.css">
-  <script src="./js/manger.js" defer></script>
-  <script src="./js/menu.js" defer></script>
-  <script src="./js/button.js" defer></script>
-  <script src="./js/graph.js" defer></script>
-  <script src="./js/script.js" defer></script> 
+  <link rel="stylesheet" href="./css/new.css">
+  <script type="module" src="./js/manager.js" defer></script>
+  <script type="module" src="./js/menu.js" defer></script>
+  <script type="module" src="./js/button.js" defer></script>
+  <script type="module" src="./js/graph.js"></script>
+  <script type="module" src="./js/script.js" defer></script> 
 
 </head>
 <body>
+    <div class="status-bar" id="statusBar">
+        <div class="status-icon" id="statusIcon"></div>
+        <div class="status-text" id="statusText">准备就绪</div>
+    </div>
+    
     <div class="canvas-container">
       <canvas id="background-layer"></canvas>  <!-- 背景层 -->
       <canvas id="storage-layer"></canvas> <!-- 存储层 -->
@@ -331,6 +337,161 @@
       </div>
     </div>
     
+    <!-- 边缘编辑菜单 -->
+    <div class="menu edge-menu active" id="edgeMenu" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+      <div class="menu-item" id="edgeColor">
+        <button id="edge-color-button">
+          <div class="icon">
+            <svg style="fill: #666" width="18" height="18"t="1741493527416" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12237" width="256" height="256"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" p-id="12238"></path></svg>
+          </div>
+          
+          <div class="unline">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="DownBoldOutlined"><path d="m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z" fill="currentColor"></path></svg>
+          </div>
+        </button>
+        
+        <div class="color-picker-content">
+          <div class="color-grid">
+            <div class="color-option" style="background-color: #000000;" data-color="#000000"></div>
+            <div class="color-option" style="background-color: #5f6368;" data-color="#5f6368"></div>
+            <div class="color-option" style="background-color: #bdc1c6;" data-color="#bdc1c6"></div>
+            <div class="color-option selected" style="background-color: #4285f4;" data-color="#4285f4"></div>
+            <div class="color-option" style="background-color: #8e24aa;" data-color="#8e24aa"></div>
+            
+            <div class="color-option" style="background-color: #4052b5;" data-color="#4052b5"></div>
+            <div class="color-option" style="background-color: #137333;" data-color="#137333"></div>
+            <div class="color-option" style="background-color: #b06000;" data-color="#b06000"></div>
+            <div class="color-option" style="background-color: #ea4335;" data-color="#ea4335"></div>
+            <div class="color-option add" id="add-edge-custom-color">+</div>
+          </div>
+          
+          <div class="custom-color-section" id="edge-custom-color-section" style="display: none;">
+            <div class="custom-color-header">自定义颜色</div>
+            <div class="custom-color-input">
+              <input type="color" id="edge-custom-color" value="#4285f4">
+              <input type="text" id="edge-hex-value" value="#4285F4">
+            </div>
+            <button class="button" id="edge-add-color-button">添加颜色</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-item" id="edgeWidth">
+        <button id="edge-width-button">
+          <div class="icon">
+            <svg style="fill: #666" width="20" height="20" t="1741493449011" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12079" width="256" height="256">
+              <path d="M60 467h904v90H60z" fill="" p-id="12080">
+              </path>
+            </svg>
+          </div>
+          
+          <div class="unline">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="DownBoldOutlined"><path d="m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z" fill="currentColor"></path></svg>
+          </div>
+        </button>
+        
+        <div class="width-properties-content">
+          <div class="width-presets">
+            <div class="control-label">线条粗细</div>
+            <div class="width-select-group">
+              <select id="width-preset">
+                <option value="1">1px</option>
+                <option value="2" selected>2px</option>
+                <option value="3">3px</option>
+                <option value="4">4px</option>
+                <option value="custom">自定义</option>
+              </select>
+              <div class="width-input-group" id="custom-width-group" style="display: none;">
+                <input type="number" id="custom-width" min="1" max="10" value="2">
+                <span class="unit">px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-item" id="edgeDirection">
+        <button id="edge-direction-button">
+          <div class="icon">
+            <svg style="fill: #666" width="22" height="22" t="1741493351381" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="10071" width="256" height="256"><path d="M330.624 130.88A21.333333 21.333333 0 0 0 320 149.333333v341.333334a21.333333 21.333333 0 0 0 31.914667 18.517333l298.666666-170.666667a21.333333 21.333333 0 0 0 0-37.034666l-298.666666-170.666667a21.333333 21.333333 0 0 0-21.290667 0.064zM596.992 320L362.666667 453.909333V186.090667L596.992 320zM693.376 893.12A21.333333 21.333333 0 0 0 704 874.666667V533.333333a21.333333 21.333333 0 0 0-31.914667-18.517333l-298.666666 170.666667a21.333333 21.333333 0 0 0 0 37.034666l298.666666 170.666667a21.333333 21.333333 0 0 0 21.290667-0.064zM427.008 704L661.333333 570.090667v267.818666L427.008 704z" fill="#000000" p-id="10072"></path><path d="M85.333333 512c0-117.824 95.509333-213.333333 213.333334-213.333333h64v42.666666h-64a170.666667 170.666667 0 1 0 0 341.333334h128v42.666666h-128C180.842667 725.333333 85.333333 629.824 85.333333 512zM938.666667 512c0 117.824-95.509333 213.333333-213.333334 213.333333h-64v-42.666666h64a170.666667 170.666667 0 1 0 0-341.333334h-128v-42.666666h128c117.824 0 213.333333 95.509333 213.333334 213.333333z" p-id="10073"></path></svg>
+          </div>
+          
+          <div class="unline">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="DownBoldOutlined"><path d="m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z" fill="currentColor"></path></svg>
+          </div>
+        </button>
+        
+        <div class="direction-content">
+          <div class="direction-message">
+            <div class="message-text">
+              <div class="message-title">反转连接方向</div>
+              <div class="message-desc">将起点和终点对调</div>
+            </div>
+          </div>
+          <button class="confirm-button">反转方向</button>
+        </div>
+      </div>
+
+      <div class="menu-item" id="edgeCondition">
+        <button id="edge-condition-button">
+          <div class="icon">
+            <svg style="fill: #666" width="20" height="20" t="1740491169910" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="27783" width="256" height="256"><path d="M504.6 715.3c-113.4 0-205.7-92.3-205.7-205.7 0-113.4 92.3-205.7 205.7-205.7 113.4 0 205.7 92.3 205.7 205.7 0 113.5-92.3 205.7-205.7 205.7z m0-371.8c-91.6 0-166.1 74.5-166.1 166.1S413 675.7 504.6 675.7s166.1-74.5 166.1-166.1c0.1-91.6-74.5-166.1-166.1-166.1z" fill="#3F3B3A" p-id="27784"></path><path d="M564 971.3H445.2c-21.8 0-39.6-17.8-39.6-39.6v-59.2c-30.7-8.3-60-20.5-87.6-36.3l-41.9 41.9c-15.4 15.4-40.5 15.4-56 0l-84-84c-15.4-15.4-15.4-40.5 0-56l41.9-41.9c-15.8-27.6-28-57-36.3-87.6H82.5c-21.8 0-39.6-17.8-39.6-39.6V450.3c0-21.8 17.8-39.6 39.6-39.6h59.2c8.3-30.7 20.5-60 36.3-87.6l-41.9-41.9c-15.4-15.4-15.4-40.5 0-56l84-84c15.4-15.4 40.5-15.4 56 0l41.9 41.9c27.6-15.8 57-28 87.6-36.3V87.5c0-21.8 17.8-39.6 39.6-39.6H564c21.8 0 39.6 17.8 39.6 39.6v59.2c30.7 8.3 60 20.5 87.6 36.3l41.9-41.9c15.4-15.4 40.5-15.4 56 0l84 84c15.4 15.4 15.4 40.5 0 56l-42 41.9c15.8 27.6 28 57 36.3 87.6h59.2c21.8 0 39.6 17.8 39.6 39.6V569c0 21.8-17.8 39.6-39.6 39.6h-59.2c-8.3 30.7-20.5 60-36.3 87.6l41.9 41.9c15.4 15.4 15.4 40.5 0 56l-84 84c-15.4 15.4-40.5 15.4-56 0l-41.9-41.9c-27.6 15.8-57 28-87.6 36.3v59.2c0.1 21.9-17.7 39.6-39.5 39.6zM312.1 786.1l13.4 8.4c32.2 20.3 67.3 34.8 104.3 43.2l15.4 3.5v90.5H564v-90.5l15.4-3.5c37-8.4 72.1-22.9 104.3-43.2l13.4-8.4 64 64 84-84-64-64 8.4-13.4c20.3-32.2 34.8-67.3 43.2-104.3l3.5-15.4h90.5V450.3h-90.5l-3.5-15.4c-8.4-37-22.9-72.1-43.2-104.3l-8.4-13.4 64-64-84-84-64 64-13.4-8.4c-32.2-20.3-67.3-34.8-104.3-43.2L564 178V87.5H445.2V178l-15.4 3.5c-37 8.4-72.1 22.9-104.3 43.2l-13.4 8.4-64-64-84 84 64 64-8.4 13.4c-20.3 32.2-34.8 67.3-43.2 104.3l-3.5 15.4H82.5V569H173l3.5 15.4c8.4 37 22.9 72.1 43.2 104.3l8.4 13.4-64 64 84 84 64-64z" fill="#3F3B3A" p-id="27785"></path></svg>
+          </div>
+          
+          <div class="unline">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="DownBoldOutlined"><path d="m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z" fill="currentColor"></path></svg>
+          </div>
+        </button>
+        
+        <div class="condition-properties-content">
+          <div class="condition-input-section">
+            <div class="condition-input-label">条件表达式</div>
+            <textarea id="edge-condition" rows="3" placeholder="请输入条件表达式"></textarea>
+          </div>
+          
+          <div class="condition-type-section">
+            <div class="control-label">条件类型</div>
+            <div class="condition-type-options">
+              <label>
+                <input type="radio" name="condition-type" value="success" checked>
+                <span>成功条件</span>
+              </label>
+              <label>
+                <input type="radio" name="condition-type" value="failure">
+                <span>失败条件</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-item" id="edgeDelete">
+        <button id="edge-delete-button">
+          <div class="icon">
+            <svg style="fill: #666" width="18" height="18" t="1741185246014" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="14695" width="256" height="256"><path d="M834.24768 256c-14.15168 0-25.6 11.08992-25.6 24.79616v668.80512c0 13.66016-11.47392 24.80128-25.6 24.80128H226.74944c-14.12608 0-25.6-11.14112-25.6-24.80128V280.79616c0-13.70624-11.44832-24.79616-25.6-24.79616s-25.6 11.08992-25.6 24.79616v668.80512c0 41.02656 34.45248 74.39872 76.8 74.39872h556.29824c42.34752 0 76.8-33.37216 76.8-74.39872V280.79616c0-13.70624-11.44832-24.79616-25.6-24.79616zM336.21504 51.2h353.28a25.6 25.6 0 0 0 0-51.2h-353.28a25.6 25.6 0 0 0 0 51.2z" p-id="14696"></path><path d="M433.06496 846.99136v-558.08a25.6 25.6 0 0 0-51.2 0v558.08a25.6 25.6 0 0 0 51.2 0zM636.3392 846.99136v-558.08a25.6 25.6 0 0 0-51.2 0v558.08a25.6 25.6 0 0 0 51.2 0zM970.24 124.58496h-916.48a25.6 25.6 0 0 0 0 51.2h916.48a25.6 25.6 0 0 0 0-51.2z" p-id="14697"></path></svg>
+          </div>
+          
+          <div class="unline">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="DownBoldOutlined"><path d="m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z" fill="currentColor"></path></svg>
+          </div>
+        </button>
+        
+        <div class="delete-confirm-content">
+          <div class="delete-message">
+            <div class="warning-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-7a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm0-8a1 1 0 0 0-1 1v5a1 1 0 1 0 2 0V8a1 1 0 0 0-1-1z" fill="#f44336"/>
+              </svg>
+            </div>
+            <div class="message-text">
+              <div class="message-title">删除连接线</div>
+              <div class="message-desc">此操作无法撤销</div>
+            </div>
+          </div>
+          <button class="confirm-button">删除</button>
+        </div>
+      </div>
+    </div>
 </body>
 </html>
 

@@ -1,3 +1,6 @@
+import state from "./script.js";
+import Manager from "./manager.js";
+
 document.getElementById('opacity-slider').addEventListener('input', function() {
     this.style.setProperty('--value', this.value + '%');
     document.getElementById('opacity-value').textContent = this.value + '%';
@@ -360,7 +363,7 @@ class MenuManager {
                 this.setBorderRadius(parseInt(this.customRadius.value));
             } else {
                 this.customRadiusGroup.style.display = 'none';
-                this.setBorderRadius(parseInt(value) * gridSize);
+                this.setBorderRadius(parseInt(value) * state.gridSize);
             }
         });
         
@@ -407,7 +410,7 @@ class MenuManager {
     }
     
     // 更新选中的节点
-    setNode(node) {
+    BindNode(node) {
         this.selectedNode = node;
         if (node) {
             this.updateFromNode();
@@ -505,7 +508,7 @@ class MenuManager {
     updateBorderRadius() {
         if (this.selectedNode) {
             const radius = this.selectedNode.borderRadius;
-            const gridRadius = radius / gridSize;
+            const gridRadius = radius / state.gridSize;
             
             // 检查是否匹配预设值
             if (Number.isInteger(gridRadius) && gridRadius >= 0 && gridRadius <= 3) {
@@ -535,4 +538,5 @@ class MenuManager {
 }
 
 // 创建菜单实例
-let menuManager = new MenuManager();
+const menuManager = new MenuManager();
+export default menuManager;

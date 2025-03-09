@@ -1,8 +1,6 @@
-let gridSize = 20;
-let lastscale = 1;
-let scale = 1;
-
-
+import state from "./script.js";
+import menuManager from "./menu.js";
+import {previewEdit} from './graph.js';
 
 class ObjectManager{
     constructor(){
@@ -11,12 +9,10 @@ class ObjectManager{
         this.NodeList = [];
         this.EdgeList = [];
         this.menu_node = null;
-
-        window.addEventListener('wheel', this.updatescale.bind(this));
+        this.menu_edge = null;
     }
 
     updatescale(){
-
         this.NodeList.forEach(Node => {
             Node.UpdateView();
         })
@@ -25,8 +21,8 @@ class ObjectManager{
         })
         const menu = document.getElementById('menu')
         if (menu.style.display === 'flex') {
-            menu.style.left = `${(parseInt(menu.style.left) + menu.offsetWidth / 2) / lastscale * scale - menu.offsetWidth / 2}px`
-            menu.style.top = `${parseInt(menu.style.top) / lastscale * scale}px`
+            menu.style.left = `${(parseInt(menu.style.left) + menu.offsetWidth / 2) / state.lastscale * state.scale - menu.offsetWidth / 2}px`
+            menu.style.top = `${parseInt(menu.style.top) / state.lastscale * state.scale}px`
         }
 
     }
@@ -34,7 +30,26 @@ class ObjectManager{
     addNode(x, y, width, height, borderRadius, border, borderColor, color){
         let node_id =  "Node_" + this.NodeList.length;
         this.NodeList.push(new Node(this.NodecontainerId, x, y, width, height, borderRadius, border, borderColor, color, node_id, this));
+        this.EdgeList.forEach(Edge => {
+            this.CheckConnection(Edge);
+        })
     }
+
+    addLine(points){
+        let canMerge = false;
+        let edge = null;
+        this.EdgeList.forEach(Edge => {
+            canMerge = Edge.CheckCanMerge(points)
+            if (canMerge) edge = Edge;
+        })
+        if (!canMerge) {
+            let polyline = new Line(points, `temp_${Math.random()}`, null);
+            edge = new Edge(this.EdgecontainerId ,`Edge_${this.EdgeList.length}`, polyline)
+            this.EdgeList.push(edge);
+        }
+        this.CheckConnection(edge)
+    }
+
 
     deleteNode(id) {
         const button = document.querySelector(`button[data-id="${id}"]`);
@@ -56,28 +71,26 @@ class ObjectManager{
         });
     }
 
-    addLine(points){
-        let canMerge = false;
-        let edge = null;
-        this.EdgeList.forEach(Edge => {
-            canMerge = Edge.CheckCanMerge(points)
-            if (canMerge) edge = Edge;
-        })
-        if (!canMerge) {
-            let polyline = new Line(points, `temp_${Math.random()}`, null);
-            edge = new Edge(this.EdgecontainerId ,`Edge_${this.EdgeList.length}`, polyline)
-            this.EdgeList.push(edge);
+    deleteEdge(id) {
+        const Edge_svg = document.querySelector(`svg[data-id="${id}"]`);
+        if (Edge_svg) {
+            Edge_svg.remove();
         }
-        this.CheckConnection(edge)
+        this.EdgeList = this.EdgeList.filter(edge => edge.id !== id);
+        this.EdgeList.forEach((edge, index) => {
+            const oldId = edge.id;
+            const newId = `Edge_${index}`;
+            edge.updateID(newId);
+        })
     }
 
+
     CheckConnection(Edge){
-        
         const isPointInRect =(node, point) =>{
-            let rectX = node.left - gridSize;
-            let rectY = node.top - gridSize;
-            let rectWidth = node.width + 2 * gridSize;
-            let rectHeight = node.height + 2 * gridSize;
+            let rectX = node.left - state.gridSize;
+            let rectY = node.top - state.gridSize;
+            let rectWidth = node.width + 2 * state.gridSize;
+            let rectHeight = node.height + 2 * state.gridSize;
             let x = point.x;
             let y = point.y;
             const xRight = rectX + rectWidth;
@@ -88,12 +101,26 @@ class ObjectManager{
             if (isPointInRect(node, Edge.Endpoints.In)) Edge.nodeIn = node;
             if (isPointInRect(node, Edge.Endpoints.Out)) Edge.nodeOut = node;
         })
+        if (Edge.nodeIn && Edge.nodeOut) {
+            previewEdit.Line.isDrawing = false; // 重置绘制状态
+        }
         Edge.UpdateView();
+    }
+
+    BindMenu(Object){
+        if (Object instanceof Node){
+            this.menu_node = Object;
+            menuManager.BindNode(this.menu_node);
+        }else if (Object instanceof Edge){
+            this.menu_edge = Object;
+            this.menu_edge = Object;
+            menuManager.BindEdge(this.menu_edge)
+        }
     }
 }
 
 class Node{
-    constructor(containerId, x, y, width, height, borderRadius, border, borderColor, color, id, manager, borderOpacity = 100, fillOpacity = 100){
+    constructor(containerId, x, y, width, height, borderRadius, border, borderColor, fillcolor, id, manager, borderOpacity = 100, fillOpacity = 100){
         this.containerId = containerId;
         this.left = x;
         this.top = y;
@@ -101,7 +128,7 @@ class Node{
         this.height = height;
         this.borderRadius = borderRadius;
         this.borderColor = borderColor;
-        this.color = color;
+        this.fillcolor = fillcolor;
         this.border = border;
         this.borderOpacity = borderOpacity;
         this.fillOpacity = fillOpacity;
@@ -123,25 +150,16 @@ class Node{
     
     create(){
         const container = document.getElementById(this.containerId)
-        
         const button = document.createElement('button')
-        
-        button.className = 'node'      // 继承之前定义的样式
-        button.setAttribute('data-id', this.id) // 设置自定义属性
+        button.className = 'node'
+        button.setAttribute('data-id', this.id)
         button.textContent = this.text.content
-        
-        container.appendChild(button)
-        
-        this.UpdateView()
-
         button.addEventListener("mouseenter", () => {
-            button.style.border = `${this.border * scale * 2}px solid ${this.borderColor}`
+            button.style.border = `${this.border * state.scale * 2}px solid ${this.borderColor}`
         });
-    
         button.addEventListener("mouseleave", () => {
-            button.style.border = `${this.border * scale}px solid ${this.borderColor}`
+            button.style.border = `${this.border * state.scale}px solid ${this.borderColor}`
         });
-
         button.addEventListener("click", () => {
             menu.style.display = menu.style.display != 'flex' ? 'flex' : 'none'
             if (this.manager.menu_node != this && menu.style.display === 'none') menu.style.display = 'flex'
@@ -156,31 +174,32 @@ class Node{
                     menu.style.display = 'none';
                 }, 250); // 与过渡时间相匹配
             }
-            this.manager.menu_node = this
-            menuManager.setNode(this);
+            this.manager.BindMenu(this);
             menu.style.position = 'absolute'
-            menu.style.left = `${this.left * scale + this.width * scale / 2 - menu.offsetWidth / 2}px`
-            menu.style.top = `${this.top * scale + this.height * scale + gridSize * scale}px`
+            menu.style.left = `${this.left * state.scale + this.width * state.scale / 2 - menu.offsetWidth / 2}px`
+            menu.style.top = `${this.top * state.scale + this.height * state.scale + state.gridSize * state.scale}px`
         })
+        container.appendChild(button)
+        this.UpdateView()
     }
 
 
-    UpdateView(){
+    UpdateView(){        
         const button = document.querySelector(`button[data-id="${this.id}"]`)
-        button.style.width = `${this.width * scale}px`
-        button.style.height = `${this.height * scale}px`
+        button.style.width = `${this.width * state.scale}px`
+        button.style.height = `${this.height * state.scale}px`
 
         button.style.position = 'absolute'
-        button.style.left = `${this.left * scale}px`
-        button.style.top = `${this.top * scale}px`
+        button.style.left = `${this.left * state.scale}px`
+        button.style.top = `${this.top * state.scale}px`
 
-        button.style.borderRadius = `${this.borderRadius * scale}px`
-        button.style.border = `${this.border * scale}px solid ${this.borderColor}`
-        button.style.backgroundColor = this.color
+        button.style.borderRadius = `${this.borderRadius * state.scale}px`
+        button.style.border = `${this.border * state.scale}px solid ${this.borderColor}`
+        button.style.backgroundColor = this.fillcolor
         button.style.opacity = `${this.fillOpacity / 100}`
 
         button.textContent = this.text.content
-        button.style.fontSize = `${this.text.size * scale}px`
+        button.style.fontSize = `${this.text.size * state.scale}px`
         button.style.color = this.text.color
         button.style.fontFamily = this.text.fontFamily
     }
@@ -192,13 +211,9 @@ class Node{
         this.height = height;
         this.borderRadius = borderRadius;
         this.borderColor = borderColor;
-        this.color = color;
+        this.fillcolor = color;
         this.border = border;
         this.UpdateView()
-    }
-
-    menu(){
-
     }
 
 }
@@ -212,7 +227,7 @@ class Line {
         this.padding = 10;
         this.points = points;  // 路径点数组，格式：[{x,y}, {x,y}, ...]
         this.linewidth = 2.5;
-        this.dasharray = `${this.linewidth * scale * 2},${this.linewidth * scale * 2}`;
+        this.dasharray = `${this.linewidth * state.scale * 2},${this.linewidth * state.scale * 2}`;
         this.color = '#333';
         this.element = round ? this.createRoundedPath() : this.createPolyline();
         this.element.setAttribute("stroke-dasharray", this.dasharray);
@@ -235,23 +250,23 @@ class Line {
             this.element = this.createRoundedPath();
             this.Addlistener();
         } else {
-            this.element.setAttribute('points', this.points.map(p => `${p.x * scale},${p.y * scale}`).join(' '));
+            this.element.setAttribute('points', this.points.map(p => `${p.x * state.scale},${p.y * state.scale}`).join(' '));
         }
         this.element.setAttribute("stroke-dasharray", this.dasharray);
     }
 
     createRoundedPath() {
         let A = {
-            x: this.points[0].x * scale,
-            y: this.points[0].y * scale
+            x: this.points[0].x * state.scale,
+            y: this.points[0].y * state.scale
         }
         let B = {
-            x: this.points[1].x * scale,
-            y: this.points[1].y * scale
+            x: this.points[1].x * state.scale,
+            y: this.points[1].y * state.scale
         }
         let C = {
-            x: this.points[2].x * scale,
-            y: this.points[2].y * scale
+            x: this.points[2].x * state.scale,
+            y: this.points[2].y * state.scale
         }
         let r = Math.abs(A.x - C.x);
         
@@ -294,7 +309,7 @@ class Line {
     createPolyline() {
         let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
         const pointsStr = this.points
-            .map(p => `${p.x * scale},${p.y * scale}`)
+            .map(p => `${p.x * state.scale},${p.y * state.scale}`)
             .join(" ");
         polyline.setAttribute("points", pointsStr);
         polyline.setAttribute("fill", "none");
@@ -327,7 +342,7 @@ class Edge{
         this.nodeOut = null;
         this.id = id
         this.polylineList = [];
-        this.roundsize = gridSize;
+        this.roundsize = state.gridSize;
         this.container = document.getElementById(containerId)
         this.Endpoints = {
             In: { x: 0, y: 0 },
@@ -385,13 +400,14 @@ class Edge{
             console.log(Otherpoint, EndLine);
             return;
         }
+        
         let angle = Math.atan2(Otherpoint.y - this.Endpoints.Out.y, Otherpoint.x - this.Endpoints.Out.x) * 180 / Math.PI;
 
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         path.setAttribute("d", "m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z");
         path.setAttribute("fill", "currentColor");
         path.setAttribute("data-id", `${this.id}_Arrow`);
-        path.setAttribute("transform", `translate(${(-Min.x + padding + this.Endpoints.Out.x - width / 2) * scale},${(-Min.y + padding + this.Endpoints.Out.y - height / 2) * scale}),rotate(${angle + 90} ${12 * scale} ${12 * scale}),scale(${scale})`);
+        path.setAttribute("transform", `translate(${(-Min.x + padding + this.Endpoints.Out.x - width / 2) * state.scale},${(-Min.y + padding + this.Endpoints.Out.y - height / 2) * state.scale}),rotate(${angle + 90} ${12 * state.scale} ${12 * state.scale}),scale(${state.scale})`);
         this.svg.appendChild(path);
     }
 
@@ -404,7 +420,7 @@ class Edge{
         if(this.nodeIn === null){
             const circle = this.createCircularPath(this.Endpoints.In.x, this.Endpoints.In.y, 5);
             circle.setAttribute('data-id', `${this.id}_In`);
-            circle.setAttribute("transform", `translate(${(-Min.x + padding) * scale},${(-Min.y + padding) * scale})`);
+            circle.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
             circle.setAttribute("fill", "red");
             this.svg.appendChild(circle);
         }
@@ -415,16 +431,16 @@ class Edge{
         if(this.nodeOut === null){
             const circle = this.createCircularPath(this.Endpoints.Out.x, this.Endpoints.Out.y, 5);
             circle.setAttribute('data-id', `${this.id}_Out`);
-            circle.setAttribute("transform", `translate(${(-Min.x + padding) * scale},${(-Min.y + padding) * scale})`);
+            circle.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
             circle.setAttribute("fill", "green");
             this.svg.appendChild(circle);
         }
     }
 
     createCircularPath(cx, cy, radius) {
-        cx = cx * scale;
-        cy = cy * scale;
-        radius = radius * scale;
+        cx = cx * state.scale;
+        cy = cy * state.scale;
+        radius = radius * state.scale;
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         const d = `M ${cx-radius},${cy} a ${radius},${radius} 0 1,0 ${radius*2},0 a ${radius},${radius} 0 1,0 ${-radius*2},0`;
         path.setAttribute("d", d);
@@ -445,8 +461,8 @@ class Edge{
         });
     
         const padding = this.linewidth + 8;
-        const paddingX = padding * scale;
-        const paddingY = padding * scale;
+        const paddingX = padding * state.scale;
+        const paddingY = padding * state.scale;
     
         const adjustedMin = {
             x: Min.x - paddingX,
@@ -458,16 +474,16 @@ class Edge{
         };
     
         this.svg.style.position = 'absolute';
-        this.svg.style.left = `${adjustedMin.x * scale}px`;
-        this.svg.style.top = `${adjustedMin.y * scale}px`;
-        this.svg.style.width = `${(adjustedMax.x - adjustedMin.x) * scale}px`;
-        this.svg.style.height = `${(adjustedMax.y - adjustedMin.y) * scale}px`;
+        this.svg.style.left = `${adjustedMin.x * state.scale}px`;
+        this.svg.style.top = `${adjustedMin.y * state.scale}px`;
+        this.svg.style.width = `${(adjustedMax.x - adjustedMin.x) * state.scale}px`;
+        this.svg.style.height = `${(adjustedMax.y - adjustedMin.y) * state.scale}px`;
     
         this.polylineList.forEach(line => {
-            line.element.setAttribute("transform", `translate(${(-Min.x + paddingX) * scale},${(-Min.y + paddingY) * scale})`);
+            line.element.setAttribute("transform", `translate(${(-Min.x + paddingX) * state.scale},${(-Min.y + paddingY) * state.scale})`);
         });
-        this.EndpointsShow(Min.x, Min.y, padding * scale);
-        this.Arrow(Min.x, Min.y, padding * scale);
+        this.EndpointsShow(Min.x, Min.y, padding * state.scale);
+        this.Arrow(Min.x, Min.y, padding * state.scale);
     }
     
     UpdateView(){
@@ -482,8 +498,8 @@ class Edge{
                 console.log("实线");
                 
             }else{
-                line.element.dasharray = `${this.linewidth * scale},${this.linewidth * scale}`;
-                line.element.setAttribute("stroke-dasharray", `${this.linewidth * scale},${this.linewidth * scale}`);
+                line.element.dasharray = `${this.linewidth * state.scale},${this.linewidth * state.scale}`;
+                line.element.setAttribute("stroke-dasharray", `${this.linewidth * state.scale},${this.linewidth * state.scale}`);
             }
         })
         this.UpdateSize();
@@ -494,8 +510,8 @@ class Edge{
             return Math.abs(value1 - value2) < tolerance;
         }
         const EqualPoint = (point1, point2) => {
-            return Equal(point1.x, point2.x, gridSize / 10 * scale) && 
-                   Equal(point1.y, point2.y, gridSize / 10 * scale) ?
+            return Equal(point1.x, point2.x, state.gridSize / 10 * state.scale) && 
+                   Equal(point1.y, point2.y, state.gridSize / 10 * state.scale) ?
                    point1 : null;
         };
         const findJunction = (line1, line2) => {
@@ -543,8 +559,8 @@ class Edge{
                     
                     // 裁剪掉原直线的长度
                     const getEndpoint = (points) => 
-                        Equal(points[0].x, junction.x, gridSize / 10 * scale) && 
-                        Equal(points[0].y, junction.y, gridSize / 10 * scale)
+                        Equal(points[0].x, junction.x, state.gridSize / 10 * state.scale) && 
+                        Equal(points[0].y, junction.y, state.gridSize / 10 * state.scale)
                             ? points[1]
                             : points[0];
                     polyline.changePoints(
@@ -578,15 +594,15 @@ class Edge{
         }
         // 获取非交点的端点
         const getEndpoint = (points) => 
-            Equal(points[0].x, junction.x, gridSize / 10 * scale) && 
-            Equal(points[0].y, junction.y, gridSize / 10 * scale)
+            Equal(points[0].x, junction.x, state.gridSize / 10 * state.scale) && 
+            Equal(points[0].y, junction.y, state.gridSize / 10 * state.scale)
                 ? points[1]
                 : points[0];
     
         // 安全方向计算
         const directionVector = (from, to) => ({
-            x: Equal(from.x, to.x, gridSize / 10 * scale) ? 0 : (to.x - from.x) / Math.abs(to.x - from.x),
-            y: Equal(from.y, to.y, gridSize / 10 * scale) ? 0 : (to.y - from.y) / Math.abs(to.y - from.y)
+            x: Equal(from.x, to.x, state.gridSize / 10 * state.scale) ? 0 : (to.x - from.x) / Math.abs(to.x - from.x),
+            y: Equal(from.y, to.y, state.gridSize / 10 * state.scale) ? 0 : (to.y - from.y) / Math.abs(to.y - from.y)
         });
     
         // 计算偏移点
@@ -603,3 +619,6 @@ class Edge{
     }
     
 }
+
+const Manager = new ObjectManager();
+export default Manager;
