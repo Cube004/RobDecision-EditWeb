@@ -6,7 +6,6 @@
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     padding: 6px 8px;
-    /* display: none; */
     position: absolute;
     transform: translateY(-20px);
     opacity: 0;

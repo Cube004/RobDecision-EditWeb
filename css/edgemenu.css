@@ -1,72 +1,8 @@
-/* 状态提示栏样式 */
-.status-bar {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(255, 255, 255, 0.95);
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 1000;
-    transition: all 0.3s ease;
-    border: 1px solid #eaeaea;
-    max-width: 400px;
-    min-width: 200px;
-}
-
-.status-bar.active {
-    background-color: rgba(242, 253, 255, 0.98);
-    border-color: #4285f4;
-}
-
-.status-icon {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.status-icon img, 
-.status-icon svg {
-    width: 20px;
-    height: 20px;
-}
-
-.status-text {
-    font-size: 14px;
-    color: #5f6368;
-    flex-grow: 1;
-    text-align: center;
-}
-
-/* 状态栏动画 */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px) translateX(-50%); }
-    to { opacity: 1; transform: translateY(0) translateX(-50%); }
-}
-
-@keyframes fadeOut {
-    from { opacity: 1; transform: translateY(0) translateX(-50%); }
-    to { opacity: 0; transform: translateY(-10px) translateX(-50%); }
-}
-
-.status-bar.show {
-    animation: fadeIn 0.3s forwards;
-}
-
-.status-bar.hide {
-    animation: fadeOut 0.3s forwards;
-}
-
 /* 边缘编辑菜单样式 */
 .edge-menu {
     z-index: 1001;
 }
+
 
 /* 线条粗细选择器 */
 .width-properties-content {
@@ -159,6 +95,11 @@
 
 .menu-item > button:hover + .condition-properties-content,
 .condition-properties-content:hover {
+    display: block;
+}
+
+.menu-item > button:hover + .delete-confirm-content,
+.delete-confirm-content:hover {
     display: block;
 }
 

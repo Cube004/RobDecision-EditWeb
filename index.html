@@ -8,7 +8,8 @@
   <link rel="stylesheet" href="./css/tools.css">
   <link rel="stylesheet" href="./css/nodemenu.css">
   <link rel="stylesheet" href="./css/color-section.css">
-  <link rel="stylesheet" href="./css/new.css">
+  <link rel="stylesheet" href="./css/edgemenu.css">
+  <link rel="stylesheet" href="./css/statusbar.css">
   <script type="module" src="./js/manager.js" defer></script>
   <script type="module" src="./js/menu.js" defer></script>
   <script type="module" src="./js/button.js" defer></script>
@@ -17,11 +18,13 @@
 
 </head>
 <body>
+    <!-- 状态栏 -->
     <div class="status-bar" id="statusBar">
         <div class="status-icon" id="statusIcon"></div>
         <div class="status-text" id="statusText">准备就绪</div>
     </div>
     
+    <!-- 画布 -->
     <div class="canvas-container">
       <canvas id="background-layer"></canvas>  <!-- 背景层 -->
       <canvas id="storage-layer"></canvas> <!-- 存储层 -->
@@ -30,6 +33,7 @@
       <canvas id="operate-layer"></canvas> <!-- 操作层 -->
     </div>
 
+    <!-- 工具栏 -->
     <div class="tools">
       <div class="tools-item">
         <button id="cursor" onclick="cursor(this)" title="选择工具">
@@ -86,7 +90,8 @@
       </div>
     </div>
     
-    <div class="menu" id = "menu">
+    <!-- 任务节点编辑菜单 -->
+    <div class="menu" id = "nodeMenu">
       <div class="menu-item" id="move">
         <button id ="node-move">
           <div class= "icon" >
@@ -153,7 +158,7 @@
           </div>
         </button>
         
-        <div class="color-picker-content border-color-picker">
+        <div class="color-picker-content">
           <div class="color-grid">
             <div class="color-option" style="background-color: transparent; border: 1px solid #ddd;" data-color="transparent"></div>
             <div class="color-option" style="background-color: #FFFFFF; border: 1px solid #ddd;" data-color="#ffffff"></div>
@@ -188,13 +193,7 @@
             <button class="button" id="border-add-color-button">添加颜色</button>
           </div>
           
-          <div class="opacity-control">
-            <div class="opacity-label">
-              <span>不透明度</span>
-              <span id="border-opacity-value">100%</span>
-            </div>
-            <input type="range" min="0" max="100" value="100" class="opacity-slider" id="border-opacity-slider">
-          </div>
+
         </div>
       </div>
       
@@ -235,21 +234,21 @@
             <div class="color-option" style="background-color: #ea4335;" data-color="#ea4335"></div>
           </div>
           
-          <div class="custom-color-section" id="custom-color-section" style="display: none;">
+          <div class="custom-color-section" id="fill-custom-color-section" style="display: none;">
             <div class="custom-color-header">自定义颜色</div>
             <div class="custom-color-input">
-              <input type="color" id="custom-color" value="#4285f4">
-              <input type="text" id="hex-value" value="#4285F4">
+              <input type="color" id="fill-custom-color" value="#4285f4">
+              <input type="text" id="fill-hex-value" value="#4285F4">
             </div>
-            <button class="button" id="add-color-button">添加颜色</button>
+            <button class="button" id="fill-add-color-button">添加颜色</button>
           </div>
           
           <div class="opacity-control">
             <div class="opacity-label">
               <span>不透明度</span>
-              <span id="opacity-value">100%</span>
+              <span id="fill-opacity-value">100%</span>
             </div>
-            <input type="range" min="0" max="100" value="100" class="opacity-slider" id="opacity-slider">
+            <input type="range" min="0" max="100" value="100" class="opacity-slider" id="fill-opacity-slider">
           </div>
         </div>
       </div>
@@ -337,8 +336,8 @@
       </div>
     </div>
     
-    <!-- 边缘编辑菜单 -->
-    <div class="menu edge-menu active" id="edgeMenu" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <!-- 跳转条件编辑菜单 -->
+    <div class="menu edge-menu active" id="edgeMenu" style="display: none;">
       <div class="menu-item" id="edgeColor">
         <button id="edge-color-button">
           <div class="icon">
@@ -465,6 +464,49 @@
         </div>
       </div>
 
+      <div class="menu-item" id="textProperties">
+        <button id="textProperties-button">
+          <div class="icon">
+            <svg data-id="T-icon" style="fill: #666" width="24" height="24" t="1741187965628" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="17416" width="256" height="256">
+              <path d="M747.24 345.95c-11.47 0-20.76-9.3-20.76-20.76v-20.76H297.51v20.76c0 11.46-9.29 20.76-20.76 20.76S256 336.65 256 325.19v-41.51c0-11.46 9.29-20.76 20.76-20.76h470.49c11.47 0 20.76 9.3 20.76 20.76v41.51c-0.01 11.46-9.3 20.76-20.77 20.76z" p-id="17417"></path>
+              <path d="M512 761.08c-11.47 0-20.76-9.3-20.76-20.76V283.68c0-11.46 9.29-20.76 20.76-20.76 11.47 0 20.76 9.3 20.76 20.76v456.65c0 11.45-9.29 20.75-20.76 20.75z"  p-id="17418"></path>
+              <path d="M581.19 761.08H442.81c-11.47 0-20.76-9.3-20.76-20.76s9.29-20.76 20.76-20.76h138.38c11.47 0 20.76 9.3 20.76 20.76s-9.29 20.76-20.76 20.76z"  p-id="17419"></path></svg>
+          </div>
+          
+          <div class="unline">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="DownBoldOutlined"><path d="m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z" fill="currentColor"></path></svg>
+          </div>
+        </button>
+        
+        <div class="text-properties-content">
+          <div class="text-input-section">
+            <div class="text-input-label">文本内容</div>
+            <textarea id="node-text" rows="3" placeholder="请输入文本"></textarea>
+          </div>
+          
+          <div class="text-style-section">
+            <div class="text-size-control">
+              <div class="control-label">字体大小</div>
+              <div class="size-input-group">
+                <input type="number" id="font-size" value="14" min="8" max="72">
+                <span class="unit">px</span>
+              </div>
+            </div>
+            
+            <div class="text-color-control">
+              <div class="control-label">文本颜色</div>
+              <div class="color-grid">
+                <div class="color-option" style="background-color: #000000;" data-color="#000000"></div>
+                <div class="color-option" style="background-color: #5f6368;" data-color="#5f6368"></div>
+                <div class="color-option" style="background-color: #4285f4;" data-color="#4285f4"></div>
+                <div class="color-option" style="background-color: #137333;" data-color="#137333"></div>
+                <div class="color-option" style="background-color: #ea4335;" data-color="#ea4335"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="menu-item" id="edgeDelete">
         <button id="edge-delete-button">
           <div class="icon">
@@ -476,7 +518,7 @@
           </div>
         </button>
         
-        <div class="delete-confirm-content">
+        <div class="delete-confirm-content" id="delete-confirm-content">
           <div class="delete-message">
             <div class="warning-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -492,6 +534,7 @@
         </div>
       </div>
     </div>
+
 </body>
 </html>
 

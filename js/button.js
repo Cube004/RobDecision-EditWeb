@@ -20,7 +20,7 @@ export function renderNodeEdge(button){
 }
 
 function Zoom(event){
-    state.lastscale = state.scale;
+    state.lastScale = state.scale;
     
     var origin_pos = {
         x: event.offsetX / state.scale,
@@ -46,7 +46,7 @@ function Zoom(event){
         left: target.x,
     });
     drawGrid(state.canvases.background);
-    Manager.updatescale();
+    Manager.updateScale();
 }
 
 document.addEventListener('contextmenu', function(event) {

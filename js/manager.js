@@ -4,32 +4,32 @@ import {previewEdit} from './graph.js';
 
 class ObjectManager{
     constructor(){
-        this.NodecontainerId = "nodeContainer";
-        this.EdgecontainerId = "edgeContainer";
+        this.NodeContainerId = "nodeContainer";
+        this.EdgeContainerId = "edgeContainer";
         this.NodeList = [];
         this.EdgeList = [];
         this.menu_node = null;
         this.menu_edge = null;
+        this.menu = document.getElementById('nodeMenu')
     }
 
-    updatescale(){
+    updateScale(){
         this.NodeList.forEach(Node => {
             Node.UpdateView();
         })
         this.EdgeList.forEach(Edge => {
             Edge.UpdateView();
         })
-        const menu = document.getElementById('menu')
-        if (menu.style.display === 'flex') {
-            menu.style.left = `${(parseInt(menu.style.left) + menu.offsetWidth / 2) / state.lastscale * state.scale - menu.offsetWidth / 2}px`
-            menu.style.top = `${parseInt(menu.style.top) / state.lastscale * state.scale}px`
+        if (this.menu.style.display === 'flex') {
+            this.menu.style.left = `${(parseInt(this.menu.style.left) + this.menu.offsetWidth / 2) / state.lastScale * state.scale - this.menu.offsetWidth / 2}px`
+            this.menu.style.top = `${parseInt(this.menu.style.top) / state.lastScale * state.scale}px`
         }
 
     }
 
     addNode(x, y, width, height, borderRadius, border, borderColor, color){
         let node_id =  "Node_" + this.NodeList.length;
-        this.NodeList.push(new Node(this.NodecontainerId, x, y, width, height, borderRadius, border, borderColor, color, node_id, this));
+        this.NodeList.push(new Node(this.NodeContainerId, x, y, width, height, borderRadius, border, borderColor, color, node_id, this));
         this.EdgeList.forEach(Edge => {
             this.CheckConnection(Edge);
         })
@@ -44,7 +44,7 @@ class ObjectManager{
         })
         if (!canMerge) {
             let polyline = new Line(points, `temp_${Math.random()}`, null);
-            edge = new Edge(this.EdgecontainerId ,`Edge_${this.EdgeList.length}`, polyline)
+            edge = new Edge(this.EdgeContainerId ,`Edge_${this.EdgeList.length}`, polyline)
             this.EdgeList.push(edge);
         }
         this.CheckConnection(edge)
@@ -71,10 +71,11 @@ class ObjectManager{
         });
     }
 
-    deleteEdge(id) {
-        const Edge_svg = document.querySelector(`svg[data-id="${id}"]`);
-        if (Edge_svg) {
-            Edge_svg.remove();
+    deleteEdge(Edge) {
+        const id = Edge.id;
+        const Edge_div = document.querySelector(`div[data-id="${id}"]`);
+        if (Edge_div) {
+            Edge_div.remove();
         }
         this.EdgeList = this.EdgeList.filter(edge => edge.id !== id);
         this.EdgeList.forEach((edge, index) => {
@@ -113,7 +114,6 @@ class ObjectManager{
             menuManager.BindNode(this.menu_node);
         }else if (Object instanceof Edge){
             this.menu_edge = Object;
-            this.menu_edge = Object;
             menuManager.BindEdge(this.menu_edge)
         }
     }
@@ -144,7 +144,7 @@ class Node{
         }
         this.create();
         this.manager = manager;
-        this.menu = document.getElementById('menu')
+        this.menu = document.getElementById('nodeMenu')
         
     }
     
@@ -161,23 +161,23 @@ class Node{
             button.style.border = `${this.border * state.scale}px solid ${this.borderColor}`
         });
         button.addEventListener("click", () => {
-            menu.style.display = menu.style.display != 'flex' ? 'flex' : 'none'
-            if (this.manager.menu_node != this && menu.style.display === 'none') menu.style.display = 'flex'
+            this.menu.style.display = this.menu.style.display != 'flex' ? 'flex' : 'none'
+            if (this.manager.menu_node != this && this.menu.style.display === 'none') this.menu.style.display = 'flex'
             if (this.menu.style.display === 'flex') {
                 setTimeout(() => {
-                    menu.classList.add('active');
+                    this.menu.classList.add('active');
                 }, 10);
             }else{
-                menu.classList.remove('active');
+                this.menu.classList.remove('active');
                 // 等待过渡结束后隐藏菜单
                 setTimeout(() => {
-                    menu.style.display = 'none';
+                    this.menu.style.display = 'none';
                 }, 250); // 与过渡时间相匹配
             }
             this.manager.BindMenu(this);
-            menu.style.position = 'absolute'
-            menu.style.left = `${this.left * state.scale + this.width * state.scale / 2 - menu.offsetWidth / 2}px`
-            menu.style.top = `${this.top * state.scale + this.height * state.scale + state.gridSize * state.scale}px`
+            this.menu.style.position = 'absolute'
+            this.menu.style.left = `${this.left * state.scale + this.width * state.scale / 2 - this.menu.offsetWidth / 2}px`
+            this.menu.style.top = `${this.top * state.scale + this.height * state.scale + state.gridSize * state.scale}px`
         })
         container.appendChild(button)
         this.UpdateView()
@@ -204,7 +204,7 @@ class Node{
         button.style.fontFamily = this.text.fontFamily
     }
 
-    changestyle(x, y, width, height, borderRadius, border, borderColor, color){
+    changeStyle(x, y, width, height, borderRadius, border, borderColor, color){
         this.left = x;
         this.top = y;
         this.width = width;
@@ -333,6 +333,9 @@ class Line {
                 polyline.element.setAttribute('stroke-width', this.linewidth);
             })
         })
+        this.element.addEventListener('click', () => {
+            this.FatherEdge.OpenMenu();
+        })
     }
 }
 
@@ -341,8 +344,16 @@ class Edge{
         this.nodeIn = null;
         this.nodeOut = null;
         this.id = id
+
+        this.color = '#4285f4';
+        this.width = 2;
+        this.condition = '';
+        this.conditionType = 'success';
+        this.text = '';
+
+        
         this.polylineList = [];
-        this.roundsize = state.gridSize;
+        this.roundSize = state.gridSize;
         this.container = document.getElementById(containerId)
         this.Endpoints = {
             In: { x: 0, y: 0 },
@@ -352,15 +363,18 @@ class Edge{
             In: { x: BasePolyline.points[0].x, y: BasePolyline.points[0].y },
             Out: { x: BasePolyline.points[1].x, y: BasePolyline.points[1].y }
         }
+        this.div = document.createElement('div');
+        this.div.setAttribute('data-id', this.id);
 
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         this.svg.setAttribute("data-id", this.id);
         this.linewidth = 3;
-        this.container.appendChild(this.svg);
-
+        this.container.appendChild(this.div);
+        this.div.appendChild(this.svg);
+        this.menu = document.getElementById('edgeMenu')
 
         BasePolyline.BindEdge(this);
-        this.AddnewLine(BasePolyline);
+        this.AddNewLine(BasePolyline);
 
         this.UpdateSize();
     }
@@ -369,10 +383,6 @@ class Edge{
         let Min = { x: x, y: y };
         let width = 24;
         let height = 24;
-        const arrow = document.querySelector(`path[data-id="${this.id}_Arrow"]`);
-        if(arrow) {
-            arrow.remove();
-        }
         
         let EndLine = null;
         let Otherpoint = null;
@@ -402,38 +412,38 @@ class Edge{
         }
         
         let angle = Math.atan2(Otherpoint.y - this.Endpoints.Out.y, Otherpoint.x - this.Endpoints.Out.x) * 180 / Math.PI;
-
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", "m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z");
-        path.setAttribute("fill", "currentColor");
-        path.setAttribute("data-id", `${this.id}_Arrow`);
-        path.setAttribute("transform", `translate(${(-Min.x + padding + this.Endpoints.Out.x - width / 2) * state.scale},${(-Min.y + padding + this.Endpoints.Out.y - height / 2) * state.scale}),rotate(${angle + 90} ${12 * state.scale} ${12 * state.scale}),scale(${state.scale})`);
-        this.svg.appendChild(path);
+        if(this.arrow){
+            this.arrow.remove();
+        }
+        this.arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        this.arrow.setAttribute("d", "m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z");
+        this.arrow.setAttribute("fill", this.color);
+        this.arrow.setAttribute("data-id", `${this.id}_Arrow`);
+        this.arrow.setAttribute("transform", `translate(${(-Min.x + padding + this.Endpoints.Out.x - width / 2) * state.scale},${(-Min.y + padding + this.Endpoints.Out.y - height / 2) * state.scale}),rotate(${angle + 90} ${12 * state.scale} ${12 * state.scale}),scale(${state.scale})`);
+        this.svg.appendChild(this.arrow);
     }
 
     EndpointsShow(x, y, padding){
         let Min = { x: x, y: y };
-        const nodeInCircle = document.querySelector(`path[data-id="${this.id}_In"]`);
-        if(nodeInCircle) {
-            nodeInCircle.remove();
+        if(this.nodeInCircle){
+            this.nodeInCircle.remove();
         }
         if(this.nodeIn === null){
-            const circle = this.createCircularPath(this.Endpoints.In.x, this.Endpoints.In.y, 5);
-            circle.setAttribute('data-id', `${this.id}_In`);
-            circle.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
-            circle.setAttribute("fill", "red");
-            this.svg.appendChild(circle);
+            this.nodeInCircle = this.createCircularPath(this.Endpoints.In.x, this.Endpoints.In.y, 5);
+            this.nodeInCircle.setAttribute('data-id', `${this.id}_In`);
+            this.nodeInCircle.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
+            this.nodeInCircle.setAttribute("fill", "red");
+            this.svg.appendChild(this.nodeInCircle);
         }
-        const nodeToCircle = document.querySelector(`path[data-id="${this.id}_Out"]`);
-        if(nodeToCircle) {
-            nodeToCircle.remove();
+        if(this.nodeToCircle){
+            this.nodeToCircle.remove();
         }
         if(this.nodeOut === null){
-            const circle = this.createCircularPath(this.Endpoints.Out.x, this.Endpoints.Out.y, 5);
-            circle.setAttribute('data-id', `${this.id}_Out`);
-            circle.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
-            circle.setAttribute("fill", "green");
-            this.svg.appendChild(circle);
+            this.nodeToCircle = this.createCircularPath(this.Endpoints.Out.x, this.Endpoints.Out.y, 5);
+            this.nodeToCircle.setAttribute('data-id', `${this.id}_Out`);
+            this.nodeToCircle.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
+            this.nodeToCircle.setAttribute("fill", "green");
+            this.svg.appendChild(this.nodeToCircle);
         }
     }
 
@@ -495,14 +505,43 @@ class Edge{
             if (this.nodeIn != null && this.nodeOut != null) {
                 line.element.dasharray = "none"
                 line.element.setAttribute("stroke-dasharray", "none");
-                console.log("实线");
                 
             }else{
                 line.element.dasharray = `${this.linewidth * state.scale},${this.linewidth * state.scale}`;
                 line.element.setAttribute("stroke-dasharray", `${this.linewidth * state.scale},${this.linewidth * state.scale}`);
             }
+            line.element.setAttribute('stroke', this.color);
+            line.element.setAttribute('stroke-width', this.width);
         })
+        this.UpdateText();
         this.UpdateSize();
+        if (this.menu.style.display === 'flex' && this.menu.selectedEdge === this) {
+            let target = this.getCenter();
+            this.menu.style.left = `${target.x * state.scale - this.menu.offsetWidth / 2}px`;
+            this.menu.style.top = `${target.y * state.scale + state.gridSize * state.scale}px`;
+        }
+    }
+
+    updateID(id){
+        this.id = id;
+        this.svg.setAttribute('data-id', this.id);
+        this.div.setAttribute('data-id', this.id);
+        this.polylineList.forEach((line, index) => {
+            line.element.setAttribute('data-id', `${this.id}_${index}`);
+        })
+        if(this.arrow){
+            this.arrow.setAttribute('data-id', `${this.id}_Arrow`);
+        }
+        if(this.textElement){
+            this.textElement.setAttribute('data-id', `${this.id}_Text`);
+        }
+        if(this.nodeInCircle){
+            this.nodeInCircle.setAttribute('data-id', `${this.id}_In`);
+        }
+        if(this.nodeToCircle){
+            this.nodeToCircle.setAttribute('data-id', `${this.id}_Out`);
+        }
+        this.UpdateView();
     }
 
     CheckCanMerge(points){
@@ -568,18 +607,19 @@ class Edge{
                     );
                     
                     // 添加圆角
-                    this.AddnewLine(new Line(roundpoints, `temp_{${Math.random()}}`, this, round));
+                    this.AddNewLine(new Line(roundpoints, `temp_{${Math.random()}}`, this, round));
                     // 添加新直线
-                    this.AddnewLine(new Line([roundpoints[2], getEndpoint(points2)], `temp_{${Math.random()}}`, this));
+                    this.AddNewLine(new Line([roundpoints[2], getEndpoint(points2)], `temp_{${Math.random()}}`, this));
                 }else{
-                    this.AddnewLine(new Line(points2, `temp_{${Math.random()}}`, this));
+                    this.AddNewLine(new Line(points2, `temp_{${Math.random()}}`, this));
                 }
                 return;
             }
         })
         return canMerge;
     }
-    AddnewLine(polyline){
+
+    AddNewLine(polyline){
         this.polylineList.push(polyline);
         this.svg.appendChild(polyline.element);
         let newId = `Edge_${this.id}_${this.polylineList.length}`
@@ -607,8 +647,8 @@ class Edge{
     
         // 计算偏移点
         const offsetPoint = (endpoint) => ({
-            x: junction.x + directionVector(junction, endpoint).x * this.roundsize,
-            y: junction.y + directionVector(junction, endpoint).y * this.roundsize
+            x: junction.x + directionVector(junction, endpoint).x * this.roundSize,
+            y: junction.y + directionVector(junction, endpoint).y * this.roundSize
         });
     
         return [
@@ -617,7 +657,89 @@ class Edge{
             offsetPoint(getEndpoint(points2)) // 圆角终点
         ];
     }
-    
+
+    UpdateText(){
+        if(!this.text.content){
+            return;
+        }
+        
+        if(this.textElement){
+            this.textElement.remove();
+        }
+        this.textElement = document.createElement('div');
+        this.textElement.setAttribute('data-id', `${this.id}_Text`);
+        this.textElement.style.position = 'absolute';
+        this.textElement.style.color = this.text.color;
+        this.textElement.style.fontSize = `${this.text.size * state.scale}px`;
+        this.textElement.textContent = this.text.content;
+        this.textElement.style.pointerEvents = 'none'; // 防止文本干扰鼠标事件
+
+        this.textElement.style.backgroundColor = 'white'; // 设置背景颜色为网页背景
+        this.textElement.style.padding = '3px 6px'; // 添加内边距使文本与背景有一定间距
+        this.textElement.style.borderRadius = '4px'; // 添加圆角
+        // this.textElement.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)'; // 添加轻微阴影增强可见性
+        // this.textElement.style.zIndex = '100'; // 确保文本在最上层
+
+        const svgParent = this.svg.parentElement;
+        svgParent.appendChild(this.textElement);
+
+        setTimeout(() => {
+            const centerX = this.getCenter().x * state.scale;
+            const centerY = this.getCenter().y * state.scale;
+            this.textElement.style.left = `${centerX - this.textElement.offsetWidth / 2}px`;
+            this.textElement.style.top = `${centerY - this.textElement.offsetHeight / 2}px`;
+        }, 0);
+    }
+
+    BindMenu(menu){
+        menuManager.BindEdge(this);
+    }
+
+    OpenMenu(){
+        this.BindMenu(this.menu);
+        this.menu.style.display = this.menu.style.display === 'none' ? 'flex' : 'none';
+        let target = this.getCenter();
+        this.menu.style.position = 'absolute'
+        this.menu.style.left = `${target.x * state.scale - this.menu.offsetWidth / 2}px`;
+        this.menu.style.top = `${target.y * state.scale + state.gridSize * state.scale}px`;
+    }
+
+    reverseDirection(){ 
+        let tempPoints = this.Endpoints.In;
+        this.Endpoints.In = this.Endpoints.Out;
+        this.Endpoints.Out = tempPoints;
+
+        let tempNodeIn = this.nodeIn == null ? null : this.nodeIn;
+        this.nodeIn = this.nodeOut == null ? null : this.nodeOut;
+        this.nodeOut = tempNodeIn;
+        this.UpdateView();
+    }
+
+    getCenter(){
+        // 获取中间点
+        let center = {
+            x: (this.Endpoints.In.x + this.Endpoints.Out.x) / 2,
+            y: (this.Endpoints.In.y + this.Endpoints.Out.y) / 2
+        }
+        let target = {
+            x: 0,
+            y: 0
+        }
+        this.polylineList.forEach(polyline => {
+            if(!polyline.round){ // 非圆角直线
+                let polyline_center = {
+                    x: (polyline.points[0].x + polyline.points[1].x) / 2,
+                    y: (polyline.points[0].y + polyline.points[1].y) / 2
+                }
+                let dis1 = Math.sqrt(Math.pow(polyline_center.x - center.x, 2) + Math.pow(polyline_center.y - center.y, 2));
+                let dis2 = Math.sqrt(Math.pow(target.x - center.x, 2) + Math.pow(target.y - center.y, 2));
+                if(dis1 < dis2){
+                    target = polyline_center;
+                }
+            }
+        })
+        return target;
+    }
 }
 
 const Manager = new ObjectManager();

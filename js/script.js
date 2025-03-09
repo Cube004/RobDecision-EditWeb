@@ -11,8 +11,9 @@ const state = {
   gridNumberY: 300,
   gridSize: 20,
   scale: 1,
-  lastscale: 1,
+  lastScale: 1,
   canvases: canvases,
+  Grid: true,
 }
 
 export default state;

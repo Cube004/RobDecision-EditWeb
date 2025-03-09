@@ -1,19 +1,6 @@
 import state from "./script.js";
 import Manager from "./manager.js";
 
-document.getElementById('opacity-slider').addEventListener('input', function() {
-    this.style.setProperty('--value', this.value + '%');
-    document.getElementById('opacity-value').textContent = this.value + '%';
-});
-
-// 处理颜色选择
-document.querySelectorAll('.color-option').forEach(option => {
-    option.addEventListener('click', function() {
-        const color = this.dataset.color;
-        
-    });
-});
-
 class ColorPicker {
     constructor(options = {}) {
         const { type = 'fill' } = options;
@@ -23,14 +10,22 @@ class ColorPicker {
         this.onChange = options.onChange || function() {};
         
         // 根据类型获取相应的DOM元素
-        const prefix = type === 'border' ? 'border-' : '';
+        const prefix = type === 'border' ? 'border-' : 'fill-';
         this.colorOptions = document.querySelectorAll(`#${type}Color .color-option`);
-        this.opacitySlider = document.getElementById(`${prefix}opacity-slider`);
-        this.opacityValue = document.getElementById(`${prefix}opacity-value`);
+        
+        if (this.type === 'fill') {
+            this.opacitySlider = document.getElementById(`${prefix}opacity-slider`);
+            this.opacityValue = document.getElementById(`${prefix}opacity-value`);
+        }
+
+        // 颜色图标
+        this.colorIcon = document.querySelector(`#${type}Color .icon svg`);
+
+        // 自定义颜色
         this.customColorSection = document.getElementById(`${prefix}custom-color-section`);
         this.customColorInput = document.getElementById(`${prefix}custom-color`);
+
         this.hexInput = document.getElementById(`${prefix}hex-value`);
-        this.colorIcon = document.querySelector(`#${type}Color .icon svg`);
         this.addColorButton = document.getElementById(`${prefix}add-color-button`);
         
         this.init();
@@ -49,9 +44,13 @@ class ColorPicker {
         });
         
         // 初始化不透明度滑块事件
-        this.opacitySlider.addEventListener('input', () => {
-            this.updateOpacity(this.opacitySlider.value);
-        });
+        if (this.type === 'fill') {
+            this.opacitySlider.addEventListener('input', () => {
+                this.opacitySlider.style.setProperty('--value', this.value + '%');
+                this.opacityValue.textContent = this.value + '%';
+                this.updateOpacity(this.opacitySlider.value);
+            });
+        }
         
         // 初始化自定义颜色输入事件
         this.customColorInput.addEventListener('input', () => {
@@ -84,14 +83,6 @@ class ColorPicker {
         if (this.colorIcon) {
             this.colorIcon.style.fill = this.currentColor === 'transparent' ? '#666' : this.currentColor;
             this.colorIcon.style.opacity = this.currentOpacity / 100;
-            if(this.type === 'border'){
-                Manager.menu_node.borderColor = this.currentColor;
-                Manager.menu_node.borderOpacity = this.currentOpacity;
-            }else if(this.type === 'fill'){
-                Manager.menu_node.color = this.currentColor;
-                Manager.menu_node.fillOpacity = this.currentOpacity;
-            }
-            Manager.menu_node.UpdateView();
         }
         
         this.triggerChange();
@@ -99,18 +90,14 @@ class ColorPicker {
     
     updateOpacity(value) {
         this.currentOpacity = value;
-        this.opacityValue.textContent = value + '%';
-        this.opacitySlider.style.setProperty('--value', value + '%');
+        if (this.type === 'fill') {
+            this.opacityValue.textContent = value + '%';
+            this.opacitySlider.style.setProperty('--value', value + '%');
+        }
         
         // 更新颜色图标的透明度
         if (this.colorIcon) {
             this.colorIcon.style.opacity = value / 100;
-            if(this.type === 'border'){
-                Manager.menu_node.borderOpacity = this.currentOpacity;
-            }else if(this.type === 'fill'){
-                Manager.menu_node.fillOpacity = this.currentOpacity;
-            }
-            Manager.menu_node.UpdateView();
         }
         
         this.triggerChange();
@@ -123,6 +110,7 @@ class ColorPicker {
     
     triggerChange() {
         this.onChange({
+            type: this.type,
             color: this.currentColor,
             opacity: this.currentOpacity,
             rgba: this.getRgbaValue()
@@ -200,26 +188,9 @@ class ColorPicker {
     }
 }
 
-// 创建两个独立的颜色选择器实例
-let fillColorPicker = new ColorPicker({
-    type: 'fill',
-    onChange: function(colorInfo) {
-        // console.log('Fill color changed:', colorInfo);
-        // 处理填充颜色变化
-    }
-});
-
-let borderColorPicker = new ColorPicker({
-    type: 'border',
-    onChange: function(colorInfo) {
-        // console.log('Border color changed:', colorInfo);
-        // 处理边框颜色变化
-    }
-});
-
-class MenuManager {
+class MenuNode {
     constructor() {
-        this.menu = document.getElementById('menu')
+        this.menu = document.getElementById('nodeMenu')
 
         // 位置
         this.x = 0;
@@ -233,8 +204,7 @@ class MenuManager {
         this.borderRadius = 8;
         this.borderWidth = 1;
         this.borderColor = '#4285f4';
-        this.borderOpacity = 100;
-        this.color = '#4285f4';
+        this.fillcolor = '#4285f4';
         this.fillOpacity = 100;
         
         // 文本
@@ -265,12 +235,28 @@ class MenuManager {
         this.textProperties = document.getElementById('textProperties');
         this.textPropertiesContent = document.querySelector('.text-properties-content');
         
+        // 创建两个独立的颜色选择器实例
+        this.fillColorPicker = new ColorPicker({
+            type: 'fill',
+            onChange: colorInfo =>{
+                this.updateFromColorPickers(colorInfo);
+            }
+        });
+
+        this.borderColorPicker = new ColorPicker({
+            type: 'border',
+            onChange: colorInfo =>{
+                this.updateFromColorPickers(colorInfo);
+            }
+        });
+
         this.initTextProperties();
         this.initTextPropertiesHover();
         this.initBorderRadius();
         this.initDeleteConfirm();
     }
     
+    // 初始化文本编辑器
     initTextProperties() {
         // 文本内容变化监听
         this.textInput.addEventListener('input', () => {
@@ -293,6 +279,7 @@ class MenuManager {
         });
     }
     
+    // 初始化文本编辑器hover
     initTextPropertiesHover() {
         let isHovered = false;
         let isComposing = false;
@@ -354,6 +341,7 @@ class MenuManager {
         });
     }
     
+    // 初始化圆角设置
     initBorderRadius() {
         // 预设圆角选择事件
         this.radiusPreset.addEventListener('change', () => {
@@ -372,7 +360,32 @@ class MenuManager {
             this.setBorderRadius(parseInt(this.customRadius.value));
         });
     }
-    
+
+    // 初始化删除确认
+    initDeleteConfirm() {
+        // 确认删除按钮点击事件
+        this.confirmButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (this.selectedNode) {
+                Manager.deleteNode(this.selectedNode.id);
+                delete this.selectedNode
+                this.selectedNode = null;
+            }
+            this.menu.style.display = 'none';
+        });
+    }
+
+    // 更新选中的节点
+    BindNode(node) {
+        this.selectedNode = node;
+        if (node) {
+            this.updateFromNode();
+            this.updateColorPickers();
+            this.updateTextProperties();
+            this.updateBorderRadius();
+        }
+    }
+
     // 更新文本属性显示
     updateTextProperties() {
         if (this.selectedNode) {
@@ -408,18 +421,18 @@ class MenuManager {
             });
         }
     }
-    
-    // 更新选中的节点
-    BindNode(node) {
-        this.selectedNode = node;
-        if (node) {
-            this.updateFromNode();
-            this.updateColorPickers();
-            this.updateTextProperties();
-            this.updateBorderRadius();
+
+    // 从颜色选择器更新菜单数据
+    updateFromColorPickers(colorInfo) {
+        if(colorInfo.type === 'fill'){
+            this.fillcolor = colorInfo.color;
+            this.fillOpacity = colorInfo.opacity;
+        }else if(colorInfo.type === 'border'){
+            this.borderColor = colorInfo.color;
         }
+        this.UpdateNode();
     }
-    
+
     // 从节点更新菜单数据
     updateFromNode() {
         // 位置
@@ -434,8 +447,8 @@ class MenuManager {
         this.borderRadius = this.selectedNode.borderRadius;
         this.borderWidth = this.selectedNode.borderWidth;
         this.borderColor = this.selectedNode.borderColor;
-        this.borderOpacity = this.selectedNode.borderOpacity;
-        this.color = this.selectedNode.color;
+        this.fillcolor = this.selectedNode.fillcolor;
+        
         this.fillOpacity = this.selectedNode.fillOpacity;
         
         // 文本
@@ -444,66 +457,7 @@ class MenuManager {
         this.fontSize = this.selectedNode.text.size;
         this.fontFamily = this.selectedNode.text.fontFamily;
     }
-    
-    // 更新颜色选择器显示
-    updateColorPickers() {
-        fillColorPicker.setColor(this.color, this.fillOpacity);
-        borderColorPicker.setColor(this.borderColor, this.borderOpacity);
-    }
-    
-    // 更新节点视图
-    UpdateView() {
-        if (this.selectedNode) {
-            // 更新节点属性
-            this.selectedNode.borderColor = this.borderColor;
-            this.selectedNode.borderOpacity = this.borderOpacity;
-            this.selectedNode.color = this.color;
-            this.selectedNode.fillOpacity = this.fillOpacity;
-            this.selectedNode.borderRadius = this.borderRadius;
-            this.selectedNode.width = this.width;
-            this.selectedNode.height = this.height;
-            this.selectedNode.text.size = this.fontSize
-            this.selectedNode.text.color = this.textColor
-            this.selectedNode.text.content = this.text
 
-            // 触发节点更新
-            this.selectedNode.UpdateView();
-        }
-    }
-    
-    // 更新位置
-    setPosition(x, y) {
-        this.x = x;
-        this.y = y;
-        this.UpdateView();
-    }
-    
-    // 更新大小
-    setSize(width, height) {
-        this.width = width;
-        this.height = height;
-        this.UpdateView();
-    }
-    
-    // 更新圆角
-    setBorderRadius(radius) {
-        this.borderRadius = radius;
-        this.UpdateView();
-    }
-    
-    // 更新文本属性
-    setText(text, color, size, family) {
-        if (text !== undefined) this.text = text;
-        if (color !== undefined) {
-            this.textColor = color;
-            const icon = document.querySelector(`svg[data-id="T-icon"]`);
-            icon.style.fill = color;
-        }
-        if (size !== undefined) this.fontSize = size;
-        if (family !== undefined) this.fontFamily = family;
-        this.UpdateView();
-    }
-    
     // 更新圆角显示
     updateBorderRadius() {
         if (this.selectedNode) {
@@ -522,21 +476,513 @@ class MenuManager {
             this.customRadius.value = radius;
         }
     }
+
+    // 更新颜色选择器显示
+    updateColorPickers() {
+        this.fillColorPicker.setColor(this.fillcolor, this.fillOpacity);
+        this.borderColorPicker.setColor(this.borderColor);
+    }
     
-    initDeleteConfirm() {
-        // 确认删除按钮点击事件
+    // 更新节点视图
+    UpdateNode() {
+        if (this.selectedNode) {
+            // 更新节点属性
+            this.selectedNode.borderColor = this.borderColor;
+            this.selectedNode.fillcolor = this.fillcolor;
+            this.selectedNode.fillOpacity = this.fillOpacity;
+            this.selectedNode.borderRadius = this.borderRadius;
+            this.selectedNode.width = this.width;
+            this.selectedNode.height = this.height;
+            this.selectedNode.text.size = this.fontSize
+            this.selectedNode.text.color = this.textColor
+            this.selectedNode.text.content = this.text
+
+            // 触发节点更新
+            this.selectedNode.UpdateView();
+        }
+    }
+    
+    // 更新位置
+    setPosition(x, y) {
+        this.x = x;
+        this.y = y;
+        this.UpdateNode();
+    }
+    
+    // 更新大小
+    setSize(width, height) {
+        this.width = width;
+        this.height = height;
+        this.UpdateNode();
+    }
+    
+    // 更新圆角
+    setBorderRadius(radius) {
+        this.borderRadius = radius;
+        this.UpdateNode();
+    }
+    
+    // 更新文本属性
+    setText(text, color, size, family) {
+        if (text !== undefined) this.text = text;
+        if (color !== undefined) {
+            this.textColor = color;
+            const icon = document.querySelector(`svg[data-id="T-icon"]`);
+            icon.style.fill = color;
+        }
+        if (size !== undefined) this.fontSize = size;
+        if (family !== undefined) this.fontFamily = family;
+        this.UpdateNode();
+    }
+    
+}
+
+class MenuEdge {
+    constructor() {
+        this.menu = document.getElementById('edgeMenu');
+
+        // 线条属性
+        this.color = '#4285f4';
+        this.width = 2;
+        this.condition = '';
+        this.conditionType = 'success';
+        this.text = '';
+        this.textColor = '#000000';
+        this.fontSize = 14;
+        
+        // 当前选中的边
+        this.selectedEdge = null;
+        
+        // 颜色选择器相关DOM引用
+        this.colorOptions = document.querySelectorAll('#edgeColor .color-option');
+        this.colorIcon = document.querySelector('#edgeColor .icon svg');
+        
+        // 线条宽度相关DOM引用
+        this.widthPreset = document.getElementById('width-preset');
+        this.customWidth = document.getElementById('custom-width');
+        this.customWidthGroup = document.getElementById('custom-width-group');
+        
+        // 方向相关DOM引用
+        this.directionButton = document.querySelector('#edgeDirection .confirm-button');
+        
+        // 条件相关DOM引用
+        this.conditionInput = document.getElementById('edge-condition');
+        this.conditionTypeOptions = document.querySelectorAll('input[name="condition-type"]');
+        
+        // 文本相关DOM引用
+        this.textInput = document.querySelector('#edgeMenu #node-text');
+        this.fontSizeInput = document.querySelector('#edgeMenu #font-size');
+        this.textColorOptions = document.querySelectorAll('#edgeMenu #textProperties .color-option');
+        
+        // 删除按钮相关DOM引用
+        this.deleteButton = document.getElementById('edge-delete-button');
+        this.confirmButton = document.querySelector('#delete-confirm-content .confirm-button');
+        
+        // 自定义颜色相关DOM引用
+        this.customColorSection = document.getElementById('edge-custom-color-section');
+        this.customColorInput = document.getElementById('edge-custom-color');
+        this.hexInput = document.getElementById('edge-hex-value');
+        this.addColorButton = document.getElementById('edge-add-color-button');
+        
+        // 添加文本菜单的引用
+        this.textProperties = document.getElementById('edgeMenu').querySelector('#textProperties');
+        this.textPropertiesContent = document.querySelector('#edgeMenu .text-properties-content');
+        
+        this.init();
+    }
+    
+    init() {
+        // 初始化颜色选择事件
+        this.colorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                if (option.id === 'add-edge-custom-color') {
+                    this.toggleCustomColorSection();
+                } else {
+                    this.selectColor(option);
+                }
+            });
+        });
+        
+        // 初始化线条宽度事件
+        this.widthPreset.addEventListener('change', () => {
+            const value = this.widthPreset.value;
+            if (value === 'custom') {
+                this.customWidthGroup.style.display = 'flex';
+                this.setWidth(parseInt(this.customWidth.value));
+            } else {
+                this.customWidthGroup.style.display = 'none';
+                this.setWidth(parseInt(value));
+            }
+        });
+        
+        // 自定义宽度输入事件
+        this.customWidth.addEventListener('input', () => {
+            this.setWidth(parseInt(this.customWidth.value));
+        });
+        
+        // 初始化方向反转按钮事件
+        this.directionButton.addEventListener('click', () => {
+            this.reverseDirection();
+        });
+        
+        // 初始化条件输入事件
+        this.conditionInput.addEventListener('input', () => {
+            this.setCondition(this.conditionInput.value);
+        });
+        
+        // 初始化条件类型选择事件
+        this.conditionTypeOptions.forEach(option => {
+            option.addEventListener('change', () => {
+                if (option.checked) {
+                    this.setConditionType(option.value);
+                }
+            });
+        });
+        
+        // 初始化文本输入事件
+        this.textInput.addEventListener('input', () => {
+            this.setText(this.textInput.value);
+        });
+        
+        // 初始化字体大小事件
+        this.fontSizeInput.addEventListener('input', () => {
+            this.setText(undefined, undefined, parseInt(this.fontSizeInput.value));
+        });
+        
+        // 初始化文本颜色选择事件
+        this.textColorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                this.setText(undefined, option.dataset.color);
+                // 更新选中状态
+                this.textColorOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+        
+        // 初始化删除确认按钮事件
         this.confirmButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (this.selectedNode) {
-                Manager.deleteNode(this.selectedNode.id);
-                delete this.selectedNode
-                this.selectedNode = null;
+            if (this.selectedEdge) {
+                Manager.deleteEdge(this.selectedEdge);
+                this.selectedEdge = null;
             }
             this.menu.style.display = 'none';
         });
+        
+        // 初始化自定义颜色输入事件
+        this.customColorInput.addEventListener('input', () => {
+            this.hexInput.value = this.customColorInput.value.toUpperCase();
+        });
+        
+        // 初始化十六进制输入事件
+        this.hexInput.addEventListener('input', () => {
+            if (/^#[0-9A-F]{6}$/i.test(this.hexInput.value)) {
+                this.customColorInput.value = this.hexInput.value;
+            }
+        });
+        
+        // 初始化添加颜色按钮事件
+        this.addColorButton.addEventListener('click', () => {
+            this.addCustomColor();
+        });
+
+        // 添加文本属性悬停功能
+        this.initTextPropertiesHover();
+    }
+    
+    // 初始化文本编辑器hover
+    initTextPropertiesHover() {
+        let isHovered = false;
+        let isComposing = false;
+        let closeTimeout = null;  // 添加延时变量
+        
+        // 监听输入法组合事件
+        this.textInput.addEventListener('compositionstart', () => {
+            isComposing = true;
+        });
+        
+        this.textInput.addEventListener('compositionend', () => {
+            isComposing = false;
+        });
+        
+        // 监听菜单项的hover
+        this.textProperties.addEventListener('mouseenter', () => {
+            if (closeTimeout) {
+                clearTimeout(closeTimeout);  // 清除延时关闭
+            }
+            isHovered = true;
+            this.textPropertiesContent.classList.add('show');
+        });
+        
+        this.textProperties.addEventListener('mouseleave', (e) => {
+            isHovered = false;
+            // 设置延时关闭
+            closeTimeout = setTimeout(() => {
+                if (!isHovered && !isComposing) {
+                    this.textPropertiesContent.classList.remove('show');
+                }
+            }, 100);  // 100ms的延迟
+        });
+        
+        // 监听内容区域的hover
+        this.textPropertiesContent.addEventListener('mouseenter', () => {
+            if (closeTimeout) {
+                clearTimeout(closeTimeout);  // 清除延时关闭
+            }
+            isHovered = true;
+        });
+        
+        this.textPropertiesContent.addEventListener('mouseleave', (e) => {
+            isHovered = false;
+            // 设置延时关闭
+            closeTimeout = setTimeout(() => {
+                if (!isHovered && !isComposing) {
+                    this.textPropertiesContent.classList.remove('show');
+                }
+            }, 100);  // 100ms的延迟
+        });
+        
+        // 监听文档点击，但在输入过程中不关闭
+        document.addEventListener('click', (e) => {
+            if (!isComposing && 
+                !this.textProperties.contains(e.target) && 
+                !this.textPropertiesContent.contains(e.target)) {
+                this.textPropertiesContent.classList.remove('show');
+            }
+        });
+    }
+    
+    // 绑定选中的边
+    BindEdge(edge) {
+        this.selectedEdge = edge;
+        if (edge) {
+            this.updateFromEdge();
+            this.updateUI();
+        }
+    }
+    
+    // 从边更新菜单数据
+    updateFromEdge() {
+        if (this.selectedEdge) {
+            this.color = this.selectedEdge.color || '#4285f4';
+            this.width = this.selectedEdge.width || 2;
+            this.condition = this.selectedEdge.condition || '';
+            this.conditionType = this.selectedEdge.conditionType || 'success';
+            this.text = this.selectedEdge.text?.content || '';
+            this.textColor = this.selectedEdge.text?.color || '#000000';
+            this.fontSize = this.selectedEdge.text?.size || 14;
+        }
+    }
+    
+    // 更新UI显示
+    updateUI() {
+        // 更新颜色选择器
+        this.updateColorSelection();
+        
+        // 更新线条宽度
+        this.updateWidthSelection();
+        
+        // 更新条件输入
+        this.conditionInput.value = this.condition;
+        
+        // 更新条件类型
+        this.conditionTypeOptions.forEach(option => {
+            option.checked = option.value === this.conditionType;
+        });
+        
+        // 更新文本输入
+        this.textInput.value = this.text;
+        
+        // 更新字体大小
+        this.fontSizeInput.value = this.fontSize;
+        
+        // 更新文本颜色选择
+        this.updateTextColorSelection();
+    }
+    
+    // 更新颜色选择器显示
+    updateColorSelection() {
+        // 移除之前的选中状态
+        this.colorOptions.forEach(option => option.classList.remove('selected'));
+        
+        // 查找匹配的预设颜色并选中
+        const matchedOption = Array.from(this.colorOptions)
+            .find(option => option.dataset.color === this.color);
+        
+        if (matchedOption) {
+            matchedOption.classList.add('selected');
+        }
+        
+        // 更新颜色图标
+        if (this.colorIcon) {
+            this.colorIcon.style.fill = this.color;
+        }
+    }
+    
+    // 更新线条宽度显示
+    updateWidthSelection() {
+        const width = this.width;
+        
+        // 检查是否匹配预设值
+        if ([1, 2, 3, 4].includes(width)) {
+            this.widthPreset.value = width.toString();
+            this.customWidthGroup.style.display = 'none';
+        } else {
+            this.widthPreset.value = 'custom';
+            this.customWidthGroup.style.display = 'flex';
+            this.customWidth.value = width;
+        }
+    }
+    
+    // 更新文本颜色选择显示
+    updateTextColorSelection() {
+        // 移除之前的选中状态
+        this.textColorOptions.forEach(option => option.classList.remove('selected'));
+        
+        // 查找匹配的预设颜色并选中
+        const matchedOption = Array.from(this.textColorOptions)
+            .find(option => option.dataset.color === this.textColor);
+        
+        if (matchedOption) {
+            matchedOption.classList.add('selected');
+        }
+        
+        // 更新T图标颜色
+        const icon = document.querySelector(`#edgeMenu svg[data-id="T-icon"]`);
+        if (icon) {
+            icon.style.fill = this.textColor;
+        }
+    }
+    
+    // 选择颜色
+    selectColor(option) {
+        // 移除之前的选中状态
+        this.colorOptions.forEach(opt => opt.classList.remove('selected'));
+        // 添加新的选中状态
+        option.classList.add('selected');
+        
+        this.color = option.dataset.color;
+        // 更新颜色图标
+        if (this.colorIcon) {
+            this.colorIcon.style.fill = this.color;
+        }
+        
+        this.updateEdge();
+    }
+    
+    // 设置线条宽度
+    setWidth(width) {
+        this.width = width;
+        this.updateEdge();
+    }
+    
+    // 反转边的方向
+    reverseDirection() {
+        if (this.selectedEdge) {
+            this.selectedEdge.reverseDirection();
+
+        }
+    }
+    
+    // 设置条件
+    setCondition(condition) {
+        this.condition = condition;
+        this.updateEdge();
+    }
+    
+    // 设置条件类型
+    setConditionType(type) {
+        this.conditionType = type;
+        this.updateEdge();
+    }
+    
+    // 设置文本属性
+    setText(text, color, size) {
+        if (text !== undefined) this.text = text;
+        if (color !== undefined) {
+            this.textColor = color;
+            const icon = document.querySelector(`#edgeMenu svg[data-id="T-icon"]`);
+            if (icon) {
+                icon.style.fill = color;
+            }
+        }
+        if (size !== undefined) this.fontSize = size;
+        
+        this.updateEdge();
+    }
+    
+    // 更新边
+    updateEdge() {
+        if (this.selectedEdge) {
+            // 更新边属性
+            this.selectedEdge.color = this.color;
+            this.selectedEdge.width = this.width;
+            this.selectedEdge.condition = this.condition;
+            this.selectedEdge.conditionType = this.conditionType;
+            
+            // 更新文本属性
+            if (!this.selectedEdge.text) {
+                this.selectedEdge.text = {};
+            }
+            this.selectedEdge.text.content = this.text;
+            this.selectedEdge.text.color = this.textColor;
+            this.selectedEdge.text.size = this.fontSize;
+            
+            // 触发边更新
+            this.selectedEdge.UpdateView();
+        }
+    }
+    
+    // 切换自定义颜色区域显示
+    toggleCustomColorSection() {
+        const isVisible = this.customColorSection.style.display !== 'none';
+        this.customColorSection.style.display = isVisible ? 'none' : 'block';
+    }
+    
+    // 添加自定义颜色
+    addCustomColor() {
+        const color = this.customColorInput.value;
+        
+        // 创建新的颜色选项
+        const newColorOption = document.createElement('div');
+        newColorOption.className = 'color-option';
+        newColorOption.style.backgroundColor = color;
+        newColorOption.dataset.color = color;
+        
+        // 获取添加按钮的引用
+        const addButton = document.getElementById('add-edge-custom-color');
+        
+        // 在添加按钮前插入新的颜色选项
+        addButton.parentNode.insertBefore(newColorOption, addButton);
+        
+        // 为新的颜色选项添加点击事件
+        newColorOption.addEventListener('click', () => {
+            this.selectColor(newColorOption);
+        });
+        
+        // 选中新添加的颜色
+        this.selectColor(newColorOption);
+        
+        // 隐藏自定义颜色区域
+        this.toggleCustomColorSection();
     }
 }
 
-// 创建菜单实例
+class MenuManager{
+    constructor(){
+        this.menuNode = new MenuNode();
+        this.menuEdge = new MenuEdge();
+    }
+
+    BindNode(node){
+        this.menuNode.BindNode(node);
+    }
+
+    BindEdge(edge){
+        this.menuEdge.BindEdge(edge);
+    }
+}
+
 const menuManager = new MenuManager();
+
 export default menuManager;

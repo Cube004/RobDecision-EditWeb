@@ -6,10 +6,11 @@ function snapToGrid(value) {
 }
 
 export function drawGrid(canvas) {
-    
+    if (!state.Grid) {
+        return;
+    }
     //在背景层绘制网格
     let ctx = canvas.getContext('2d');
-    console.log(ctx, canvas, state);
 
     ctx.beginPath();
     ctx.strokeStyle = '#ddd';
@@ -27,9 +28,9 @@ export function drawGrid(canvas) {
     ctx.stroke();
 }
 
-function strokeRoundRect(ctx, x, y, width, height, radius, linedash) {
-    if (linedash) {
-        ctx.setLineDash([linedash, linedash]);
+function strokeRoundRect(ctx, x, y, width, height, radius, LineDash) {
+    if (LineDash) {
+        ctx.setLineDash([LineDash, LineDash]);
     }else {
         ctx.setLineDash([]);
     }
