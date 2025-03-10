@@ -436,20 +436,19 @@ class MenuNode {
     // 从节点更新菜单数据
     updateFromNode() {
         // 位置
-        this.x = this.selectedNode.x;
-        this.y = this.selectedNode.y;
+        this.x = this.selectedNode.position.x;
+        this.y = this.selectedNode.position.y;
         
-        // 大小
-        this.width = this.selectedNode.width;
-        this.height = this.selectedNode.height;
+        // 形状
+        this.width = this.selectedNode.shape.width;
+        this.height = this.selectedNode.shape.height;
+        this.borderRadius = this.selectedNode.shape.borderRadius;
+        this.borderWidth = this.selectedNode.shape.borderWidth;
         
-        // 样式
-        this.borderRadius = this.selectedNode.borderRadius;
-        this.borderWidth = this.selectedNode.borderWidth;
-        this.borderColor = this.selectedNode.borderColor;
-        this.fillcolor = this.selectedNode.fillcolor;
-        
-        this.fillOpacity = this.selectedNode.fillOpacity;
+        // 颜色
+        this.borderColor = this.selectedNode.color.borderColor;
+        this.fillcolor = this.selectedNode.color.fillColor;
+        this.fillOpacity = this.selectedNode.color.fillOpacity;
         
         // 文本
         this.text = this.selectedNode.text.content;
@@ -461,7 +460,7 @@ class MenuNode {
     // 更新圆角显示
     updateBorderRadius() {
         if (this.selectedNode) {
-            const radius = this.selectedNode.borderRadius;
+            const radius = this.selectedNode.shape.borderRadius;
             const gridRadius = radius / state.gridSize;
             
             // 检查是否匹配预设值
@@ -486,19 +485,29 @@ class MenuNode {
     // 更新节点视图
     UpdateNode() {
         if (this.selectedNode) {
-            // 更新节点属性
-            this.selectedNode.borderColor = this.borderColor;
-            this.selectedNode.fillcolor = this.fillcolor;
-            this.selectedNode.fillOpacity = this.fillOpacity;
-            this.selectedNode.borderRadius = this.borderRadius;
-            this.selectedNode.width = this.width;
-            this.selectedNode.height = this.height;
-            this.selectedNode.text.size = this.fontSize
-            this.selectedNode.text.color = this.textColor
-            this.selectedNode.text.content = this.text
+            const shape = {
+                width: this.width,
+                height: this.height,
+                borderRadius: this.borderRadius,
+                borderWidth: this.borderWidth
+            }
 
+            const color = {
+                borderColor: this.borderColor,
+                fillColor: this.fillcolor,
+                fillOpacity: this.fillOpacity
+            }   
+            
+            const text = {
+                content: this.text,
+                size: this.fontSize,
+                color: this.textColor,
+                fontFamily: this.fontFamily
+            }
+            
+            const task = null;
             // 触发节点更新
-            this.selectedNode.UpdateView();
+            this.selectedNode.changeStyle(shape, color, text, task);
         }
     }
     
@@ -764,13 +773,12 @@ class MenuEdge {
     // 从边更新菜单数据
     updateFromEdge() {
         if (this.selectedEdge) {
-            this.color = this.selectedEdge.color || '#4285f4';
-            this.width = this.selectedEdge.width || 2;
+            this.color = this.selectedEdge.LineStyle.color || '#4285f4';
+            this.width = this.selectedEdge.LineStyle.width || 2;
             this.condition = this.selectedEdge.condition || '';
-            this.conditionType = this.selectedEdge.conditionType || 'success';
-            this.text = this.selectedEdge.text?.content || '';
-            this.textColor = this.selectedEdge.text?.color || '#000000';
-            this.fontSize = this.selectedEdge.text?.size || 14;
+            this.text = this.selectedEdge.text.content || '';
+            this.textColor = this.selectedEdge.text.color || '#000000';
+            this.fontSize = this.selectedEdge.text.size || 14;
         }
     }
     
@@ -880,7 +888,6 @@ class MenuEdge {
     reverseDirection() {
         if (this.selectedEdge) {
             this.selectedEdge.reverseDirection();
-
         }
     }
     
@@ -915,10 +922,9 @@ class MenuEdge {
     updateEdge() {
         if (this.selectedEdge) {
             // 更新边属性
-            this.selectedEdge.color = this.color;
-            this.selectedEdge.width = this.width;
+            this.selectedEdge.LineStyle.color = this.color;
+            this.selectedEdge.LineStyle.width = this.width;
             this.selectedEdge.condition = this.condition;
-            this.selectedEdge.conditionType = this.conditionType;
             
             // 更新文本属性
             if (!this.selectedEdge.text) {

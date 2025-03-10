@@ -27,9 +27,14 @@ class ObjectManager{
 
     }
 
-    addNode(x, y, width, height, borderRadius, border, borderColor, color){
+    addNode(x, y, width, height, borderRadius, borderWidth, borderColor, fillColor, fillOpacity = 100){
         let node_id =  "Node_" + this.NodeList.length;
-        this.NodeList.push(new Node(this.NodeContainerId, x, y, width, height, borderRadius, border, borderColor, color, node_id, this));
+        this.NodeList.push(new Node(this.NodeContainerId, 
+            node_id,
+            {x: x, y: y},
+            {width: width, height: height, borderRadius: borderRadius, borderWidth: borderWidth},
+            {borderColor: borderColor, fillColor: fillColor, fillOpacity: fillOpacity},
+        ));
         this.EdgeList.forEach(Edge => {
             this.CheckConnection(Edge);
         })
@@ -44,7 +49,8 @@ class ObjectManager{
         })
         if (!canMerge) {
             let polyline = new Line(points, `temp_${Math.random()}`, null);
-            edge = new Edge(this.EdgeContainerId ,`Edge_${this.EdgeList.length}`, polyline)
+            edge = new Edge(this.EdgeContainerId ,`Edge_${this.EdgeList.length}`)
+            edge.AddNewLine(polyline)
             this.EdgeList.push(edge);
         }
         this.CheckConnection(edge)
@@ -85,13 +91,94 @@ class ObjectManager{
         })
     }
 
+    output(){
+        let NodeData = [];
+        this.NodeList.forEach(node => {
+            NodeData.push({
+                containerId: node.containerId, 
+                id: node.id,
+                position: node.position,
+                shape: node.shape,
+                color: node.color,
+                text: node.text,
+                task: node.task
+            })
+        })
+        let EdgeData = [];
+        this.EdgeList.forEach(edge => {
+            EdgeData.push({
+                id: edge.id,
+                node: {
+                    nodeIn: edge.node.nodeIn ? edge.node.nodeIn.id : null,
+                    nodeOut: edge.node.nodeOut ? edge.node.nodeOut.id : null
+                },
+                lineStyle: edge.LineStyle,
+                text: edge.text,
+                condition: edge.condition,
+                endpoints: edge.Endpoints,
+                pointLists: edge.lineList.map(line => line.points)
+            })
+        })
+        const outputData = {
+            Date: new Date().toISOString(),
+            Version: 1.0,
+            Nodes: NodeData,
+            Edges: EdgeData
+        }
+        const jsonData = JSON.stringify(outputData);
+        const blob = new Blob([jsonData], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'output.json';
+        a.click();
+    }
+
+    load(jsonData) {
+        try {
+            // 解析JSON数据
+            const data = JSON.parse(jsonData);
+            
+            // 检查版本兼容性
+            if (data.Version > 1.0) {
+                throw new Error('不支持的文件版本');
+            }
+            
+            // 清除现有的所有节点和边
+            this.NodeList.forEach(node => {
+                this.deleteNode(node.id);
+            });
+            this.EdgeList.forEach(edge => {
+                this.deleteEdge(edge);
+            });
+
+            // 加载节点
+            data.Nodes.forEach(nodeData => {
+                let newNode = new Node(this.NodeContainerId, nodeData.id, nodeData.position, nodeData.shape, nodeData.color, nodeData.text, nodeData.task);
+                this.NodeList.push(newNode);
+            });
+            
+            // 加载边
+            data.Edges.forEach(edgeData => {
+                let newEdge = new Edge(this.EdgeContainerId, edgeData.id);
+                newEdge.reconstruct(this.EdgeContainerId, edgeData.id, edgeData.node, edgeData.lineStyle, edgeData.text, edgeData.condition, edgeData.endpoints, edgeData.pointLists);
+                this.EdgeList.push(newEdge);
+                this.CheckConnection(newEdge);
+            });
+            
+            return true;
+        } catch (error) {
+            console.error('加载文件失败:', error);
+            return false;
+        }
+    }
 
     CheckConnection(Edge){
         const isPointInRect =(node, point) =>{
-            let rectX = node.left - state.gridSize;
-            let rectY = node.top - state.gridSize;
-            let rectWidth = node.width + 2 * state.gridSize;
-            let rectHeight = node.height + 2 * state.gridSize;
+            let rectX = node.position.x - state.gridSize;
+            let rectY = node.position.y - state.gridSize;
+            let rectWidth = node.shape.width + 2 * state.gridSize;
+            let rectHeight = node.shape.height + 2 * state.gridSize;
             let x = point.x;
             let y = point.y;
             const xRight = rectX + rectWidth;
@@ -99,10 +186,10 @@ class ObjectManager{
             return x >= rectX && x <= xRight && y >= rectY && y <= yBottom;
         }
         this.NodeList.forEach(node => {
-            if (isPointInRect(node, Edge.Endpoints.In)) Edge.nodeIn = node;
-            if (isPointInRect(node, Edge.Endpoints.Out)) Edge.nodeOut = node;
+            if (isPointInRect(node, Edge.Endpoints.In)) Edge.node.nodeIn = node;
+            if (isPointInRect(node, Edge.Endpoints.Out)) Edge.node.nodeOut = node;
         })
-        if (Edge.nodeIn && Edge.nodeOut) {
+        if (Edge.node.nodeIn && Edge.node.nodeOut) {
             previewEdit.Line.isDrawing = false; // 重置绘制状态
         }
         Edge.UpdateView();
@@ -120,30 +207,47 @@ class ObjectManager{
 }
 
 class Node{
-    constructor(containerId, x, y, width, height, borderRadius, border, borderColor, fillcolor, id, manager, borderOpacity = 100, fillOpacity = 100){
+    constructor(containerId, id, position, shape, color, text = null, task = null){
         this.containerId = containerId;
-        this.left = x;
-        this.top = y;
-        this.width = width;
-        this.height = height;
-        this.borderRadius = borderRadius;
-        this.borderColor = borderColor;
-        this.fillcolor = fillcolor;
-        this.border = border;
-        this.borderOpacity = borderOpacity;
-        this.fillOpacity = fillOpacity;
         this.id = id;
-        this.text = {
-            size: 12,
-            color: "#000000",
-            content: `Node ${this.id}`,
-            fontFamily : 'Arial, sans-serif'
+
+        this.position = {
+            x: position.x,
+            y: position.y
         }
-        this.task = {
-            
+
+        this.shape = {
+            width: shape.width,
+            height: shape.height,
+            borderWidth: shape.borderWidth,
+            borderRadius: shape.borderRadius
+        }
+        
+        this.color = {
+            borderColor: color.borderColor,
+            fillColor: color.fillColor,
+            fillOpacity: color.fillOpacity
+        }
+
+        if (text != null){
+            this.text = text;
+        }else{
+            this.text = {
+                size: 12,
+                color: "#000000",
+                content: `Node ${this.id}`,
+                fontFamily : 'Arial, sans-serif'
+            }
+        }
+        if (task != null){
+            this.task = task;
+        }else{
+            this.task = {
+
+            }
         }
         this.create();
-        this.manager = manager;
+        this.manager = Manager;
         this.menu = document.getElementById('nodeMenu')
         
     }
@@ -155,10 +259,10 @@ class Node{
         button.setAttribute('data-id', this.id)
         button.textContent = this.text.content
         button.addEventListener("mouseenter", () => {
-            button.style.border = `${this.border * state.scale * 2}px solid ${this.borderColor}`
+            button.style.border = `${this.shape.borderWidth * state.scale * 2}px solid ${this.color.borderColor}`
         });
         button.addEventListener("mouseleave", () => {
-            button.style.border = `${this.border * state.scale}px solid ${this.borderColor}`
+            button.style.border = `${this.shape.borderWidth * state.scale}px solid ${this.color.borderColor}`
         });
         button.addEventListener("click", () => {
             this.menu.style.display = this.menu.style.display != 'flex' ? 'flex' : 'none'
@@ -176,8 +280,8 @@ class Node{
             }
             this.manager.BindMenu(this);
             this.menu.style.position = 'absolute'
-            this.menu.style.left = `${this.left * state.scale + this.width * state.scale / 2 - this.menu.offsetWidth / 2}px`
-            this.menu.style.top = `${this.top * state.scale + this.height * state.scale + state.gridSize * state.scale}px`
+            this.menu.style.left = `${this.position.x * state.scale + this.shape.width * state.scale / 2 - this.menu.offsetWidth / 2}px`
+            this.menu.style.top = `${this.position.y * state.scale + this.shape.height * state.scale + state.gridSize * state.scale}px`
         })
         container.appendChild(button)
         this.UpdateView()
@@ -186,17 +290,17 @@ class Node{
 
     UpdateView(){        
         const button = document.querySelector(`button[data-id="${this.id}"]`)
-        button.style.width = `${this.width * state.scale}px`
-        button.style.height = `${this.height * state.scale}px`
+        button.style.width = `${this.shape.width * state.scale}px`
+        button.style.height = `${this.shape.height * state.scale}px`
 
         button.style.position = 'absolute'
-        button.style.left = `${this.left * state.scale}px`
-        button.style.top = `${this.top * state.scale}px`
+        button.style.left = `${this.position.x * state.scale}px`
+        button.style.top = `${this.position.y * state.scale}px`
 
-        button.style.borderRadius = `${this.borderRadius * state.scale}px`
-        button.style.border = `${this.border * state.scale}px solid ${this.borderColor}`
-        button.style.backgroundColor = this.fillcolor
-        button.style.opacity = `${this.fillOpacity / 100}`
+        button.style.borderRadius = `${this.shape.borderRadius * state.scale}px`
+        button.style.border = `${this.shape.borderWidth * state.scale}px solid ${this.color.borderColor}`
+        button.style.backgroundColor = this.color.fillColor
+        button.style.opacity = `${this.color.fillOpacity / 100}`
 
         button.textContent = this.text.content
         button.style.fontSize = `${this.text.size * state.scale}px`
@@ -204,15 +308,25 @@ class Node{
         button.style.fontFamily = this.text.fontFamily
     }
 
-    changeStyle(x, y, width, height, borderRadius, border, borderColor, color){
-        this.left = x;
-        this.top = y;
-        this.width = width;
-        this.height = height;
-        this.borderRadius = borderRadius;
-        this.borderColor = borderColor;
-        this.fillcolor = color;
-        this.border = border;
+    changeStyle(shape, color, text, task){
+        this.shape = {
+            width: shape.width == null ? this.shape.width : shape.width,
+            height: shape.height == null ? this.shape.height : shape.height,
+            borderWidth: shape.borderWidth == null ? this.shape.borderWidth : shape.borderWidth,
+            borderRadius: shape.borderRadius == null ? this.shape.borderRadius : shape.borderRadius
+        };
+        this.color = {
+            borderColor: color.borderColor == null ? this.color.borderColor : color.borderColor,
+            fillColor: color.fillColor == null ? this.color.fillColor : color.fillColor,
+            fillOpacity: color.fillOpacity == null ? this.color.fillOpacity : color.fillOpacity
+        };
+        this.text = {
+            size: text.size == null ? this.text.size : text.size,
+            color: text.color == null ? this.text.color : text.color,
+            content: text.content == null ? this.text.content : text.content,
+            fontFamily: text.fontFamily == null ? this.text.fontFamily : text.fontFamily
+        };
+        this.task = task;
         this.UpdateView()
     }
 
@@ -220,17 +334,17 @@ class Node{
 
 
 class Line {
-    constructor(points = [], id, FatherEdge = null, round = false) {
+    constructor(points = [], id, round = false, FatherEdge = null) {
         this.id = id;
         this.FatherEdge = FatherEdge;
         this.round = round;
         this.padding = 10;
         this.points = points;  // 路径点数组，格式：[{x,y}, {x,y}, ...]
         this.linewidth = 2.5;
-        this.dasharray = `${this.linewidth * state.scale * 2},${this.linewidth * state.scale * 2}`;
+        this.dashWidth = 3;
+        this.dasharray = `${this.dashWidth * state.scale * 2},${this.dashWidth * state.scale * 2}`;
         this.color = '#333';
         this.element = round ? this.createRoundedPath() : this.createPolyline();
-        this.element.setAttribute("stroke-dasharray", this.dasharray);
         if (this.FatherEdge) this.Addlistener();
     }
 
@@ -245,14 +359,12 @@ class Line {
     }
 
     Redraw() {
-        if (this.round) {
+        if (this.element) {
             this.element.remove();
-            this.element = this.createRoundedPath();
-            this.Addlistener();
-        } else {
-            this.element.setAttribute('points', this.points.map(p => `${p.x * state.scale},${p.y * state.scale}`).join(' '));
         }
-        this.element.setAttribute("stroke-dasharray", this.dasharray);
+        this.element = this.round ? this.createRoundedPath() : this.createPolyline();
+        this.Addlistener();
+        this.FatherEdge.svg.appendChild(this.element);
     }
 
     createRoundedPath() {
@@ -302,6 +414,7 @@ class Line {
         path.setAttribute("fill", "none");
         path.setAttribute("stroke", this.color);
         path.setAttribute("stroke-width", this.linewidth);
+        path.setAttribute("stroke-dasharray", this.dasharray);
         path.setAttribute('data-id', this.id)
         return path;
     }
@@ -315,22 +428,22 @@ class Line {
         polyline.setAttribute("fill", "none");
         polyline.setAttribute("stroke-width", this.linewidth);
         polyline.setAttribute("stroke", this.color);
-        polyline.setAttribute("stroke-dasharray", `none`);
+        polyline.setAttribute("stroke-dasharray", this.dasharray);
         polyline.setAttribute('data-id', this.id)
         return polyline;
     }
 
     Addlistener(){
         this.element.addEventListener('mouseover', () => {
-            this.FatherEdge.polylineList.forEach(polyline => {
-                polyline.element.style.filter = 'drop-shadow(0px 0px 3px rgba(0,0,0,0.5))';
-                polyline.element.setAttribute('stroke-width', this.linewidth + 2);
+            this.FatherEdge.lineList.forEach(line => {
+                line.element.style.filter = 'drop-shadow(0px 0px 3px rgba(0,0,0,0.5))';
+                line.element.setAttribute('stroke-width', this.linewidth + 2);
             })
         });
         this.element.addEventListener('mouseout', () => {
-            this.FatherEdge.polylineList.forEach(polyline => {
-                polyline.element.style.filter = '';
-                polyline.element.setAttribute('stroke-width', this.linewidth);
+            this.FatherEdge.lineList.forEach(line => {
+                line.element.style.filter = '';
+                line.element.setAttribute('stroke-width', this.linewidth);
             })
         })
         this.element.addEventListener('click', () => {
@@ -340,86 +453,109 @@ class Line {
 }
 
 class Edge{
-    constructor(containerId, id, BasePolyline){
-        this.nodeIn = null;
-        this.nodeOut = null;
+    constructor(containerId, id){
         this.id = id
-
-        this.color = '#4285f4';
-        this.width = 2;
-        this.condition = '';
-        this.conditionType = 'success';
-        this.text = '';
-
-        
-        this.polylineList = [];
-        this.roundSize = state.gridSize;
         this.container = document.getElementById(containerId)
+        
+        this.node = {
+            nodeIn: null,
+            nodeOut: null,
+        }
+
+        this.LineStyle = {
+            width: 2,
+            color: '#4285f4',
+            dashWidth: 3,
+            roundSize: state.gridSize,
+            dash: true,
+        }
+
+        this.text = {
+            color: '#4285f4',
+            size: 12,
+            fontFamily: 'Arial, sans-serif',
+            content: '',
+        }
+
+        this.condition = {
+            weight: 2,
+        }
+
+        this.lineList = [];
+        
         this.Endpoints = {
             In: { x: 0, y: 0 },
             Out: { x: 0, y: 0 }
         }
-        this.Endpoints = {
-            In: { x: BasePolyline.points[0].x, y: BasePolyline.points[0].y },
-            Out: { x: BasePolyline.points[1].x, y: BasePolyline.points[1].y }
-        }
+        this.init()
+    }
+
+    reconstruct(containerId, id, node, lineStyle, text, condition, endpoints, pointLists){
+        this.id = id
+        this.container = document.getElementById(containerId)
+        this.node = node
+        this.LineStyle = lineStyle
+        this.text = text
+        this.condition = condition
+        pointLists.forEach(points =>{
+            let round = points.length == 2 ? false : true;
+            this.AddNewLine(new Line(points, `temp_{${Math.random()}}`, round, this))
+        })
+        this.Endpoints = endpoints
+        this.init()
+    }
+
+    init(){
         this.div = document.createElement('div');
         this.div.setAttribute('data-id', this.id);
 
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         this.svg.setAttribute("data-id", this.id);
-        this.linewidth = 3;
+        
         this.container.appendChild(this.div);
         this.div.appendChild(this.svg);
-        this.menu = document.getElementById('edgeMenu')
 
-        BasePolyline.BindEdge(this);
-        this.AddNewLine(BasePolyline);
-
-        this.UpdateSize();
+        this.menu = document.getElementById('edgeMenu');
     }
 
     Arrow(x, y, padding){
         let Min = { x: x, y: y };
-        let width = 24;
-        let height = 24;
         
         let EndLine = null;
-        let Otherpoint = null;
-        this.polylineList.forEach(polyline => {
-            polyline.points.forEach(point => {
+        let OtherPoint = null;
+        this.lineList.forEach(line => {
+            line.points.forEach(point => {
                 if(point.x == this.Endpoints.Out.x && point.y == this.Endpoints.Out.y){
-                    EndLine = polyline;
+                    EndLine = line;
                     return;
                 }
             })
         })
         if(EndLine === null){
-            console.log("Error: EndLine is null");
-            console.log(EndLine);
             return;
         }
         if(EndLine.points[0].x == this.Endpoints.Out.x && EndLine.points[0].y == this.Endpoints.Out.y){
-            Otherpoint = EndLine.points[1];
+            OtherPoint = EndLine.points[1];
         }else{
-            Otherpoint = EndLine.points[0];
+            OtherPoint = EndLine.points[0];
         }
 
-        if(Otherpoint === null || EndLine === null){
-            console.log("Error: Otherpoint or EndLine is null");
-            console.log(Otherpoint, EndLine);
+        if(OtherPoint === null){
             return;
         }
         
-        let angle = Math.atan2(Otherpoint.y - this.Endpoints.Out.y, Otherpoint.x - this.Endpoints.Out.x) * 180 / Math.PI;
+        let angle = Math.atan2(OtherPoint.y - this.Endpoints.Out.y, OtherPoint.x - this.Endpoints.Out.x) * 180 / Math.PI;
         if(this.arrow){
             this.arrow.remove();
         }
         this.arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
         this.arrow.setAttribute("d", "m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z");
-        this.arrow.setAttribute("fill", this.color);
+        this.arrow.setAttribute("fill", this.LineStyle.color);
         this.arrow.setAttribute("data-id", `${this.id}_Arrow`);
-        this.arrow.setAttribute("transform", `translate(${(-Min.x + padding + this.Endpoints.Out.x - width / 2) * state.scale},${(-Min.y + padding + this.Endpoints.Out.y - height / 2) * state.scale}),rotate(${angle + 90} ${12 * state.scale} ${12 * state.scale}),scale(${state.scale})`);
+        this.arrow.setAttribute("transform", 
+                                `translate(${(-Min.x + padding + this.Endpoints.Out.x - 24 / 2) * state.scale},${(-Min.y + padding + this.Endpoints.Out.y - 24 / 2) * state.scale}),
+                                rotate(${angle + 90} ${12 * state.scale} ${12 * state.scale}),
+                                scale(${state.scale})`);
         this.svg.appendChild(this.arrow);
     }
 
@@ -428,7 +564,7 @@ class Edge{
         if(this.nodeInCircle){
             this.nodeInCircle.remove();
         }
-        if(this.nodeIn === null){
+        if(this.node.nodeIn === null){
             this.nodeInCircle = this.createCircularPath(this.Endpoints.In.x, this.Endpoints.In.y, 5);
             this.nodeInCircle.setAttribute('data-id', `${this.id}_In`);
             this.nodeInCircle.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
@@ -438,7 +574,7 @@ class Edge{
         if(this.nodeToCircle){
             this.nodeToCircle.remove();
         }
-        if(this.nodeOut === null){
+        if(this.node.nodeOut === null){
             this.nodeToCircle = this.createCircularPath(this.Endpoints.Out.x, this.Endpoints.Out.y, 5);
             this.nodeToCircle.setAttribute('data-id', `${this.id}_Out`);
             this.nodeToCircle.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
@@ -456,11 +592,36 @@ class Edge{
         path.setAttribute("d", d);
         return path;
     }
+ 
+    UpdateView(){
+        
+        this.lineList.forEach(line => {
+            line.Redraw();
+            if(line.round){
+                this.svg.appendChild(line.element);
+            }
+            if (this.node.nodeIn != null && this.node.nodeOut != null) {
+                line.element.dasharray = "none"
+                line.element.setAttribute("stroke-dasharray", "none");
+                
+            }else{
+                line.element.dasharray = `${this.LineStyle.dashWidth * state.scale},${this.LineStyle.dashWidth * state.scale}`;
+                line.element.setAttribute("stroke-dasharray", `${this.LineStyle.dashWidth * state.scale},${this.LineStyle.dashWidth * state.scale}`);
+            }
+            line.element.setAttribute('stroke', this.LineStyle.color);
+            line.element.setAttribute('stroke-width', this.LineStyle.width);
+        })
+        
+        if (this.menu.style.display === 'flex' && this.menu.selectedEdge === this) {
+            let target = this.getCenter();
+            this.menu.style.left = `${target.x * state.scale - this.menu.offsetWidth / 2}px`;
+            this.menu.style.top = `${target.y * state.scale + state.gridSize * state.scale}px`;
+        }
 
-    UpdateSize() {
         let Min = { x: Infinity, y: Infinity };
         let Max = { x: -Infinity, y: -Infinity };
-        this.polylineList.forEach(line => {
+
+        this.lineList.forEach(line => {
             const points = line.points;
             points.forEach(point => {
                 if (point.x < Min.x) Min.x = point.x;
@@ -470,17 +631,15 @@ class Edge{
             });
         });
     
-        const padding = this.linewidth + 8;
-        const paddingX = padding * state.scale;
-        const paddingY = padding * state.scale;
+        const padding = this.LineStyle.width + 8 * state.scale;
     
         const adjustedMin = {
-            x: Min.x - paddingX,
-            y: Min.y - paddingY
+            x: Min.x - padding,
+            y: Min.y - padding
         };
         const adjustedMax = {
-            x: Max.x + paddingX,
-            y: Max.y + paddingY
+            x: Max.x + padding,
+            y: Max.y + padding
         };
     
         this.svg.style.position = 'absolute';
@@ -489,44 +648,20 @@ class Edge{
         this.svg.style.width = `${(adjustedMax.x - adjustedMin.x) * state.scale}px`;
         this.svg.style.height = `${(adjustedMax.y - adjustedMin.y) * state.scale}px`;
     
-        this.polylineList.forEach(line => {
-            line.element.setAttribute("transform", `translate(${(-Min.x + paddingX) * state.scale},${(-Min.y + paddingY) * state.scale})`);
+        this.lineList.forEach(line => {
+            line.element.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
         });
-        this.EndpointsShow(Min.x, Min.y, padding * state.scale);
-        this.Arrow(Min.x, Min.y, padding * state.scale);
-    }
-    
-    UpdateView(){
-        this.polylineList.forEach(line => {
-            line.Redraw();
-            if(line.round){
-                this.svg.appendChild(line.element);
-            }
-            if (this.nodeIn != null && this.nodeOut != null) {
-                line.element.dasharray = "none"
-                line.element.setAttribute("stroke-dasharray", "none");
-                
-            }else{
-                line.element.dasharray = `${this.linewidth * state.scale},${this.linewidth * state.scale}`;
-                line.element.setAttribute("stroke-dasharray", `${this.linewidth * state.scale},${this.linewidth * state.scale}`);
-            }
-            line.element.setAttribute('stroke', this.color);
-            line.element.setAttribute('stroke-width', this.width);
-        })
+
+        this.EndpointsShow(Min.x, Min.y, padding);
+        this.Arrow(Min.x, Min.y, padding);
         this.UpdateText();
-        this.UpdateSize();
-        if (this.menu.style.display === 'flex' && this.menu.selectedEdge === this) {
-            let target = this.getCenter();
-            this.menu.style.left = `${target.x * state.scale - this.menu.offsetWidth / 2}px`;
-            this.menu.style.top = `${target.y * state.scale + state.gridSize * state.scale}px`;
-        }
     }
 
     updateID(id){
         this.id = id;
         this.svg.setAttribute('data-id', this.id);
         this.div.setAttribute('data-id', this.id);
-        this.polylineList.forEach((line, index) => {
+        this.lineList.forEach((line, index) => {
             line.element.setAttribute('data-id', `${this.id}_${index}`);
         })
         if(this.arrow){
@@ -575,11 +710,11 @@ class Edge{
 
         let canMerge = false;
         let round = false;
-        this.polylineList.forEach(polyline => {
-            const points1 = polyline.points;
+        this.lineList.forEach(line => {
+            const points1 = line.points;
             const points2 = points;
 
-            const junction = findJunction(polyline.points, points);
+            const junction = findJunction(line.points, points);
 
             if(junction != null){
                 canMerge = true;
@@ -594,7 +729,7 @@ class Edge{
                 round = areLinesPerpendicularOrParallel(points1, points2);
                 if(round){
                     // 计算交点处的圆角
-                    let roundpoints = this.GetRoundPoints(points1, points2, junction);
+                    let roundPoints = this.GetRoundPoints(points1, points2, junction);
                     
                     // 裁剪掉原直线的长度
                     const getEndpoint = (points) => 
@@ -602,16 +737,16 @@ class Edge{
                         Equal(points[0].y, junction.y, state.gridSize / 10 * state.scale)
                             ? points[1]
                             : points[0];
-                    polyline.changePoints(
-                        [getEndpoint(points1),roundpoints[0]]
+                    line.changePoints(
+                        [getEndpoint(points1),roundPoints[0]]
                     );
                     
                     // 添加圆角
-                    this.AddNewLine(new Line(roundpoints, `temp_{${Math.random()}}`, this, round));
+                    this.AddNewLine(new Line(roundPoints, `temp_{${Math.random()}}`, round,this));
                     // 添加新直线
-                    this.AddNewLine(new Line([roundpoints[2], getEndpoint(points2)], `temp_{${Math.random()}}`, this));
+                    this.AddNewLine(new Line([roundPoints[2], getEndpoint(points2)], `temp_{${Math.random()}}`,false, this));
                 }else{
-                    this.AddNewLine(new Line(points2, `temp_{${Math.random()}}`, this));
+                    this.AddNewLine(new Line(points2, `temp_{${Math.random()}}`, false, this));
                 }
                 return;
             }
@@ -619,12 +754,22 @@ class Edge{
         return canMerge;
     }
 
-    AddNewLine(polyline){
-        this.polylineList.push(polyline);
-        this.svg.appendChild(polyline.element);
-        let newId = `Edge_${this.id}_${this.polylineList.length}`
-        polyline.element.setAttribute('data-id', newId);
-        polyline.id = newId;
+    AddNewLine(line){
+        this.lineList.push(line);
+        this.svg.appendChild(line.element);
+        
+        let newId = `Edge_${this.id}_${this.lineList.length}`
+        line.element.setAttribute('data-id', newId);
+        line.id = newId;
+        
+        if(line.FatherEdge == null) line.BindEdge(this);
+        
+        if(this.lineList.length == 1) {
+            this.Endpoints = {
+                In: line.points[0],
+                Out: line.points[1]
+            }
+        }
         this.UpdateView();
     }
 
@@ -647,8 +792,8 @@ class Edge{
     
         // 计算偏移点
         const offsetPoint = (endpoint) => ({
-            x: junction.x + directionVector(junction, endpoint).x * this.roundSize,
-            y: junction.y + directionVector(junction, endpoint).y * this.roundSize
+            x: junction.x + directionVector(junction, endpoint).x * this.LineStyle.roundSize,
+            y: junction.y + directionVector(junction, endpoint).y * this.LineStyle.roundSize
         });
     
         return [
@@ -709,9 +854,9 @@ class Edge{
         this.Endpoints.In = this.Endpoints.Out;
         this.Endpoints.Out = tempPoints;
 
-        let tempNodeIn = this.nodeIn == null ? null : this.nodeIn;
-        this.nodeIn = this.nodeOut == null ? null : this.nodeOut;
-        this.nodeOut = tempNodeIn;
+        let tempNodeIn = this.node.nodeIn == null ? null : this.node.nodeIn;
+        this.node.nodeIn = this.node.nodeOut == null ? null : this.node.nodeOut;
+        this.node.nodeOut = tempNodeIn;
         this.UpdateView();
     }
 
@@ -725,16 +870,16 @@ class Edge{
             x: 0,
             y: 0
         }
-        this.polylineList.forEach(polyline => {
-            if(!polyline.round){ // 非圆角直线
-                let polyline_center = {
-                    x: (polyline.points[0].x + polyline.points[1].x) / 2,
-                    y: (polyline.points[0].y + polyline.points[1].y) / 2
+        this.lineList.forEach(line => {
+            if(!line.round){ // 非圆角直线
+                let line_center = {
+                    x: (line.points[0].x + line.points[1].x) / 2,
+                    y: (line.points[0].y + line.points[1].y) / 2
                 }
-                let dis1 = Math.sqrt(Math.pow(polyline_center.x - center.x, 2) + Math.pow(polyline_center.y - center.y, 2));
+                let dis1 = Math.sqrt(Math.pow(line_center.x - center.x, 2) + Math.pow(line_center.y - center.y, 2));
                 let dis2 = Math.sqrt(Math.pow(target.x - center.x, 2) + Math.pow(target.y - center.y, 2));
                 if(dis1 < dis2){
-                    target = polyline_center;
+                    target = line_center;
                 }
             }
         })

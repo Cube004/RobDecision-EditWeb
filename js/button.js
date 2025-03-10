@@ -19,6 +19,31 @@ export function renderNodeEdge(button){
     state.canvases.operate.style.display = "block";
 }
 
+export function exportData(button){
+    Manager.output();
+}
+
+export function loadData(button){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+
+    input.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const jsonData = e.target.result;
+                Manager.load(jsonData);
+            };
+            reader.readAsText(file);
+        }
+    });
+    input.click();
+}
+
 function Zoom(event){
     state.lastScale = state.scale;
     
@@ -63,4 +88,5 @@ window.addEventListener('wheel', Zoom);
 window.renderTaskNode = renderTaskNode;
 window.cursor = cursor;
 window.renderNodeEdge = renderNodeEdge;
-
+window.exportData = exportData;
+window.loadData = loadData;

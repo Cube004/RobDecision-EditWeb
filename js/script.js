@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.getElementById('info').addEventListener('click', function() {
-        updateStatus('info', '版本信息 - 当前版本: 1.0', '<img src="css/版本信息提示.png" width="20px">');
+        updateStatus('info', '版本信息 - 当前版本: 0.0.5', '<img src="css/版本信息提示.png" width="20px">');
         // 这里可以添加显示版本信息的代码
     });
     
