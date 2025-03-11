@@ -1,6 +1,7 @@
 body, html {
     margin: 0;
     padding: 0;
+    user-select: none;
     /* overflow: hidden; */
      /* 防止滚动条 */
     /* height: 100%; */

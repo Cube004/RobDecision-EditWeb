@@ -6,6 +6,7 @@ class ObjectManager{
     constructor(){
         this.NodeContainerId = "nodeContainer";
         this.EdgeContainerId = "edgeContainer";
+        this.MapManager = new MapManager();
         this.NodeList = [];
         this.EdgeList = [];
         this.menu_node = null;
@@ -887,5 +888,214 @@ class Edge{
     }
 }
 
+class Point{
+    constructor(position, id, realPosition){
+        this.id = id;
+        this.position = position;
+        this.realPosition = realPosition;
+        this.color = '#1296db';
+        this.mapImageDiv = document.querySelector('.map-image-div');
+        this.mapImage = this.mapImageDiv.querySelector('.map-image');
+        this.resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const { width, height } = entry.contentRect;
+                console.log('尺寸变化:', width, height);
+                this.updatePosition();
+            }
+        });
+
+        this.resizeObserver.observe(this.mapImage);
+        this.init();
+        this.element.addEventListener('click', () => {
+            console.log(this.id);
+        });
+    }
+    
+    init(){        
+        this.element = document.createElement('div');
+        this.element.className = 'point';
+        this.element.setAttribute('data-id', `Point_${this.id}`);
+        this.element.style.position = 'absolute';
+        this.element.style.display = 'flex';
+        this.element.style.flexDirection = 'column';
+        this.element.style.alignItems = 'center';
+        this.element.style.justifyContent = 'center';
+    
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        this.svg.setAttribute('width', 24);
+        this.svg.setAttribute('height', 24);
+        this.svg.setAttribute('viewBox', "0 0 1024 1024");
+        this.path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        this.path.setAttribute('d',"M528 32C325.056 32 160 196.8 160 399.36c0 75.2 22.656 147.584 65.024 208.48 2.112 3.648 4.256 7.168 6.784 10.592l268.608 353.472c7.296 8.096 17.088 12.576 27.584 12.576 10.368 0 20.224-4.512 28.768-14.08l267.36-352c2.624-3.52 4.896-7.36 6.112-9.6A364.864 364.864 0 0 0 896 399.36C896 196.8 730.912 32 528 32z m0 498.72a131.52 131.52 0 0 1-131.456-131.232 131.488 131.488 0 0 1 262.88 0 131.52 131.52 0 0 1-131.424 131.2z")
+        this.path.setAttribute('fill', this.color);
+        this.svg.appendChild(this.path);
+
+        this.IDtext = document.createElement('div');
+        this.IDtext.textContent = `${this.id}`;
+        this.IDtext.style.textAlign = 'center';
+        this.IDtext.style.fontFamily = 'Arial, sans-serif';
+        this.IDtext.style.fontSize = '12px';
+        this.IDtext.style.fontWeight = 'bold';
+        this.IDtext.style.color = '#333';
+        this.IDtext.style.marginTop = '2px';
+
+        this.PositionText = document.createElement('div');
+        this.PositionText.textContent = `(${this.realPosition.x.toFixed(1)},${this.realPosition.y.toFixed(1)})`;
+        this.PositionText.style.textAlign = 'center';
+        this.PositionText.style.fontFamily = 'Arial, sans-serif';
+        this.PositionText.style.fontSize = '12px';
+        this.PositionText.style.fontWeight = 'bold';
+        this.PositionText.style.color = '#333';
+
+
+        this.element.appendChild(this.svg);
+        this.element.appendChild(this.IDtext);
+        this.element.appendChild(this.PositionText);
+        this.mapImageDiv.appendChild(this.element);
+        this.updatePosition();
+    }
+
+
+    updatePosition(){
+        // 获取图片的实际显示尺寸
+        const displayWidth = this.mapImage.width;
+        const displayHeight = this.mapImage.height;
+        
+        // 获取图片的原始尺寸
+        const naturalWidth = this.mapImage.naturalWidth;
+        const naturalHeight = this.mapImage.naturalHeight;
+        
+        // 计算缩放比例
+        const scaleX = naturalWidth / displayWidth;
+        const scaleY = naturalHeight / displayHeight;
+        
+        let x = this.position.x / scaleX;
+        let y = this.position.y / scaleY;
+        console.log('实际位置', this.position, '在地图上的位置', x, y, '缩放比例', scaleX, scaleY);
+
+
+        this.element.style.left = `${x - this.element.offsetWidth / 2}px`;
+        this.element.style.top = `${y - this.element.offsetHeight / 2}px`;
+    }
+}
+
+class MapManager{
+    constructor(){
+        this.init();
+        this.pointList = [];
+        
+        // 用于实际距离校准
+        this.mapConfig = {
+            LeftTop: {
+                x: 266.717405691595,
+                y: 115.88395285584768
+            },
+            RightBottom: {
+                x: 1998.2859033752484,
+                y: 1269.1387126019945
+            },
+            Distance: {
+                x: 12,
+                y: 8
+            },
+            BasePoint: {
+                x: 371.4493712772998,
+                y: 259.6917497733454
+            }
+        }
+    }
+
+    init(){
+        // 创建遮罩层
+        this.overlay = document.createElement('div');
+        this.overlay.className = 'map-overlay';
+        this.overlay.style.display = 'none';
+        // 创建地图容器
+        this.mapContainer = document.createElement('div');
+        this.mapContainer.className = 'map-container';
+
+        
+        // 创建地图图片
+        this.mapImageDiv = document.createElement('div');
+        this.mapImageDiv.className = 'map-image-div';
+        this.mapImageDiv.style.position = 'relative';
+        this.mapImage = document.createElement('img');
+        this.mapImage.className = 'map-image';
+        this.mapImage.src = 'map/RUML.png';
+        this.mapImage.alt = '航点地图';
+        this.mapImageDiv.addEventListener('mousedown', this.clickMap.bind(this));
+        this.mapImageDiv.appendChild(this.mapImage);
+
+
+        // 创建提示
+        this.tip = document.createElement('div');
+        this.tip.className = 'map-tip';
+        this.tip.innerHTML = `
+            <p>点击地图左键选择航点或右键创建航点</p>
+        `;
+
+        // 创建关闭按钮
+        this.closeButton = document.createElement('button');
+        this.closeButton.className = 'close-button';
+        this.closeButton.innerHTML = `
+            <svg viewBox="0 0 24 24">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+        `;
+        // 组装DOM
+        this.mapContainer.appendChild(this.mapImageDiv);
+        this.mapContainer.appendChild(this.closeButton);
+        this.mapContainer.appendChild(this.tip);
+        this.overlay.appendChild(this.mapContainer);
+        document.body.appendChild(this.overlay);
+        this.closeButton.addEventListener('click', this.closeMap.bind(this));
+    }
+    closeMap(){
+        this.overlay.style.display = 'none';
+    };
+    showMap(){
+        this.overlay.style.display = 'flex';
+    }
+    clickMap(event){
+        if (event.button != 2) return;
+        // 获取图片的实际显示尺寸
+        const displayWidth = this.mapImage.width;
+        const displayHeight = this.mapImage.height;
+        
+        // 获取图片的原始尺寸
+        const naturalWidth = this.mapImage.naturalWidth;
+        const naturalHeight = this.mapImage.naturalHeight;
+        console.log(naturalHeight, naturalWidth);
+        
+        // 计算缩放比例
+        const scaleX = naturalWidth / displayWidth;
+        const scaleY = naturalHeight / displayHeight;
+        
+        // 计算相对于图片的位置（考虑 padding）
+        let position = {
+            x: (event.offsetX) * scaleX,
+            y: (event.offsetY) * scaleY
+        }
+        
+        this.addPoint(position);
+        console.log('在地图上的原始位置', position, '点击位置', event.offsetX, event.offsetY);
+    }
+    addPoint(position){
+        let realPosition = this.getRealPoint(position);
+        let point = new Point(position, this.pointList.length, realPosition);
+        this.pointList.push(point);
+    }
+    getRealPoint(position){
+        let scaleX = this.mapConfig.Distance.x / (this.mapConfig.RightBottom.x - this.mapConfig.LeftTop.x);
+        let scaleY = this.mapConfig.Distance.y / (this.mapConfig.RightBottom.y - this.mapConfig.LeftTop.y);
+        let realPoint = {
+            x: (position.x - this.mapConfig.BasePoint.x) * scaleX,
+            y: (position.y - this.mapConfig.BasePoint.y) * scaleY
+        }
+        return realPoint;
+    }
+}
+
 const Manager = new ObjectManager();
+
 export default Manager;
