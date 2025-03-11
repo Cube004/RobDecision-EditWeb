@@ -277,14 +277,14 @@
         <div class="text-properties-content">
           <div class="text-input-section">
             <div class="text-input-label">文本内容</div>
-            <textarea id="node-text" rows="3" placeholder="请输入文本"></textarea>
+            <textarea class="text-input-area" id="node-text" rows="3" placeholder="请输入文本"></textarea>
           </div>
           
           <div class="text-style-section">
             <div class="text-size-control">
               <div class="control-label">字体大小</div>
               <div class="size-input-group">
-                <input type="number" id="font-size" value="14" min="8" max="72">
+                <input type="number" class="font-size" id="node-font-size" value="14" min="8" max="72">
                 <span class="unit">px</span>
               </div>
             </div>
@@ -488,14 +488,14 @@
         <div class="text-properties-content">
           <div class="text-input-section">
             <div class="text-input-label">文本内容</div>
-            <textarea id="node-text" rows="3" placeholder="请输入文本"></textarea>
+            <textarea class="text-input-area" id="edge-text" rows="3" placeholder="请输入文本"></textarea>
           </div>
           
           <div class="text-style-section">
             <div class="text-size-control">
               <div class="control-label">字体大小</div>
               <div class="size-input-group">
-                <input type="number" id="font-size" value="14" min="8" max="72">
+                <input type="number" class="font-size" id="edge-font-size" value="14" min="8" max="72">
                 <span class="unit">px</span>
               </div>
             </div>
@@ -525,7 +525,7 @@
           </div>
         </button>
         
-        <div class="delete-confirm-content" id="delete-confirm-content">
+        <div class="delete-confirm-content" id="edge-delete-confirm-content">
           <div class="delete-message">
             <div class="warning-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -538,6 +538,116 @@
             </div>
           </div>
           <button class="confirm-button">删除</button>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="menu point-menu active" id="pointMenu" style="display: none;">
+      <div class="menu-item" id="pointColor">
+        <button id="point-color-button">
+          <div class="icon">
+            <svg style="fill: #666" width="18" height="18"t="1741493527416" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12237" width="256" height="256"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" p-id="12238"></path></svg>
+          </div>
+          
+          <div class="unline">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="DownBoldOutlined"><path d="m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z" fill="currentColor"></path></svg>
+          </div>
+        </button>
+        
+        <div class="color-picker-content">
+          <div class="color-grid">
+            <div class="color-option" style="background-color: #000000;" data-color="#000000"></div>
+            <div class="color-option" style="background-color: #5f6368;" data-color="#5f6368"></div>
+            <div class="color-option" style="background-color: #bdc1c6;" data-color="#bdc1c6"></div>
+            <div class="color-option selected" style="background-color: #4285f4;" data-color="#4285f4"></div>
+            <div class="color-option" style="background-color: #8e24aa;" data-color="#8e24aa"></div>
+            
+            <div class="color-option" style="background-color: #4052b5;" data-color="#4052b5"></div>
+            <div class="color-option" style="background-color: #137333;" data-color="#137333"></div>
+            <div class="color-option" style="background-color: #b06000;" data-color="#b06000"></div>
+            <div class="color-option" style="background-color: #ea4335;" data-color="#ea4335"></div>
+            <div class="color-option add" id="add-point-custom-color">+</div>
+          </div>
+          
+          <div class="custom-color-section" id="point-custom-color-section" style="display: none;">
+            <div class="custom-color-header">自定义颜色</div>
+            <div class="custom-color-input">
+              <input type="color" id="point-custom-color" value="#4285f4">
+              <input type="text" id="point-hex-value" value="#4285F4">
+            </div>
+            <button class="button" id="point-add-color-button">添加颜色</button>
+          </div>
+        </div>
+      </div>
+      <div class="menu-item" id="textProperties">
+        <button id="textProperties-button">
+          <div class="icon">
+            <svg data-id="T-icon" style="fill: #666" width="24" height="24" t="1741187965628" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="17416" width="256" height="256">
+              <path d="M747.24 345.95c-11.47 0-20.76-9.3-20.76-20.76v-20.76H297.51v20.76c0 11.46-9.29 20.76-20.76 20.76S256 336.65 256 325.19v-41.51c0-11.46 9.29-20.76 20.76-20.76h470.49c11.47 0 20.76 9.3 20.76 20.76v41.51c-0.01 11.46-9.3 20.76-20.77 20.76z" p-id="17417"></path>
+              <path d="M512 761.08c-11.47 0-20.76-9.3-20.76-20.76V283.68c0-11.46 9.29-20.76 20.76-20.76 11.47 0 20.76 9.3 20.76 20.76v456.65c0 11.45-9.29 20.75-20.76 20.75z"  p-id="17418"></path>
+              <path d="M581.19 761.08H442.81c-11.47 0-20.76-9.3-20.76-20.76s9.29-20.76 20.76-20.76h138.38c11.47 0 20.76 9.3 20.76 20.76s-9.29 20.76-20.76 20.76z"  p-id="17419"></path></svg>
+          </div>
+          
+          <div class="unline">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="DownBoldOutlined"><path d="m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z" fill="currentColor"></path></svg>
+          </div>
+        </button>
+        
+        <div class="text-properties-content">
+          <div class="text-input-section">
+            <div class="text-input-label">文本内容</div>
+            <textarea class="text-input-area"id="point-text" rows="3" placeholder="请输入文本"></textarea>
+          </div>
+          
+          <div class="text-style-section">
+            <div class="text-size-control">
+              <div class="control-label">字体大小</div>
+              <div class="size-input-group">
+                <input type="number" class="font-size" id="point-font-size" value="14" min="8" max="72">
+                <span class="unit">px</span>
+              </div>
+            </div>
+            
+            <div class="text-color-control">
+              <div class="control-label">文本颜色</div>
+              <div class="color-grid">
+                <div class="color-option" style="background-color: #000000;" data-color="#000000"></div>
+                <div class="color-option" style="background-color: #5f6368;" data-color="#5f6368"></div>
+                <div class="color-option" style="background-color: #4285f4;" data-color="#4285f4"></div>
+                <div class="color-option" style="background-color: #137333;" data-color="#137333"></div>
+                <div class="color-option" style="background-color: #ea4335;" data-color="#ea4335"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-item" id="pointDelete">
+        <button id="point-delete-button">
+          <div class="icon">
+            <svg style="fill: #666" width="18" height="18" t="1741185246014" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="14695" width="256" height="256"><path d="M834.24768 256c-14.15168 0-25.6 11.08992-25.6 24.79616v668.80512c0 13.66016-11.47392 24.80128-25.6 24.80128H226.74944c-14.12608 0-25.6-11.14112-25.6-24.80128V280.79616c0-13.70624-11.44832-24.79616-25.6-24.79616s-25.6 11.08992-25.6 24.79616v668.80512c0 41.02656 34.45248 74.39872 76.8 74.39872h556.29824c42.34752 0 76.8-33.37216 76.8-74.39872V280.79616c0-13.70624-11.44832-24.79616-25.6-24.79616zM336.21504 51.2h353.28a25.6 25.6 0 0 0 0-51.2h-353.28a25.6 25.6 0 0 0 0 51.2z" p-id="14696"></path><path d="M433.06496 846.99136v-558.08a25.6 25.6 0 0 0-51.2 0v558.08a25.6 25.6 0 0 0 51.2 0zM636.3392 846.99136v-558.08a25.6 25.6 0 0 0-51.2 0v558.08a25.6 25.6 0 0 0 51.2 0zM970.24 124.58496h-916.48a25.6 25.6 0 0 0 0 51.2h916.48a25.6 25.6 0 0 0 0-51.2z" p-id="14697"></path></svg>
+          </div>
+          
+          <div class="unline">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="DownBoldOutlined"><path d="m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z" fill="currentColor"></path></svg>
+          </div>
+        </button>
+        
+        <div class="delete-confirm-content" id="point-delete-confirm-content">
+          <div class="delete-message">
+            <div class="warning-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-7a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm0-8a1 1 0 0 0-1 1v5a1 1 0 1 0 2 0V8a1 1 0 0 0-1-1z" fill="#f44336"/>
+              </svg>
+            </div>
+            <div class="message-text">
+              <div class="message-title">删除航点</div>
+              <div class="message-desc">此操作无法撤销</div>
+            </div>
+          </div>
+          <button class="confirm-button" id="point-delete-confirm-button">删除</button>
         </div>
       </div>
     </div>

@@ -92,6 +92,10 @@ class ObjectManager{
         })
     }
 
+    deletePoint(point){
+        this.MapManager.deletePoint(point);
+    }
+
     output(){
         let NodeData = [];
         this.NodeList.forEach(node => {
@@ -120,11 +124,22 @@ class ObjectManager{
                 pointLists: edge.lineList.map(line => line.points)
             })
         })
+        let pointData = [];
+        this.MapManager.pointList.forEach(point => {
+            pointData.push({
+                position: point.position,
+                id: point.id,
+                realPosition: point.realPosition,
+                color: point.color,
+                text: point.text
+            })
+        })
         const outputData = {
             Date: new Date().toISOString(),
             Version: 1.0,
             Nodes: NodeData,
-            Edges: EdgeData
+            Edges: EdgeData,
+            Points: pointData
         }
         const jsonData = JSON.stringify(outputData);
         const blob = new Blob([jsonData], {type: 'application/json'});
@@ -167,6 +182,10 @@ class ObjectManager{
                 this.CheckConnection(newEdge);
             });
             
+            // 加载航点
+            data.Points.forEach(pointData => {
+                this.MapManager.reloadPoint(pointData.position, pointData.id, pointData.realPosition, pointData.color, pointData.text);
+            });
             return true;
         } catch (error) {
             console.error('加载文件失败:', error);
@@ -609,6 +628,7 @@ class Edge{
                 line.element.dasharray = `${this.LineStyle.dashWidth * state.scale},${this.LineStyle.dashWidth * state.scale}`;
                 line.element.setAttribute("stroke-dasharray", `${this.LineStyle.dashWidth * state.scale},${this.LineStyle.dashWidth * state.scale}`);
             }
+            line.linewidth = this.LineStyle.width;
             line.element.setAttribute('stroke', this.LineStyle.color);
             line.element.setAttribute('stroke-width', this.LineStyle.width);
         })
@@ -890,28 +910,34 @@ class Edge{
 
 class Point{
     constructor(position, id, realPosition){
+        if(position == null || position == undefined) return; // 如果位置为空，则不创建航点,等待重建
         this.id = id;
         this.position = position;
         this.realPosition = realPosition;
         this.color = '#1296db';
-        this.mapImageDiv = document.querySelector('.map-image-div');
-        this.mapImage = this.mapImageDiv.querySelector('.map-image');
-        this.resizeObserver = new ResizeObserver(entries => {
-            for (let entry of entries) {
-                const { width, height } = entry.contentRect;
-                console.log('尺寸变化:', width, height);
-                this.updatePosition();
-            }
-        });
-
-        this.resizeObserver.observe(this.mapImage);
+        this.text ={
+            content: `${this.id}`,
+            color: '#333',
+            size: 12
+        }
         this.init();
-        this.element.addEventListener('click', () => {
-            console.log(this.id);
-        });
+    }
+
+    reconstruct(position, id, realPosition, color, text){
+        this.position = position;
+        this.id = id;
+        this.realPosition = realPosition;
+        this.color = color;
+        this.text = text;
+        this.init();
+        this.UpdateView();
     }
     
-    init(){        
+    init(){
+        this.mapImageDiv = document.querySelector('.map-image-div');
+        this.mapImage = this.mapImageDiv.querySelector('.map-image');
+        this.pointMenu = document.getElementById('pointMenu');
+
         this.element = document.createElement('div');
         this.element.className = 'point';
         this.element.setAttribute('data-id', `Point_${this.id}`);
@@ -947,6 +973,19 @@ class Point{
         this.PositionText.style.fontWeight = 'bold';
         this.PositionText.style.color = '#333';
 
+        this.resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const { width, height } = entry.contentRect;
+                if (width && height) {
+                    this.updatePosition();
+                }
+            }
+        });
+
+        this.resizeObserver.observe(this.mapImage);
+        this.element.addEventListener('click', () => {
+            this.OpenMenu();
+        });
 
         this.element.appendChild(this.svg);
         this.element.appendChild(this.IDtext);
@@ -954,7 +993,6 @@ class Point{
         this.mapImageDiv.appendChild(this.element);
         this.updatePosition();
     }
-
 
     updatePosition(){
         // 获取图片的实际显示尺寸
@@ -976,6 +1014,40 @@ class Point{
 
         this.element.style.left = `${x - this.element.offsetWidth / 2}px`;
         this.element.style.top = `${y - this.element.offsetHeight / 2}px`;
+
+        if (menuManager.menuPoint.selectedPoint == this) {
+            this.moveMenu();
+        }
+
+    }
+    UpdateView(){
+        this.path.setAttribute('fill', this.color);
+        // 更新文本属性
+        this.IDtext.style.color = this.text.color;
+        this.PositionText.style.color = this.text.color;
+        this.IDtext.textContent = this.text.content;
+        this.IDtext.style.fontSize = `${this.text.size}px`;
+        // 避免文字太长导致坐标偏移，所以需要重新计算
+        this.updatePosition();
+        this.moveMenu();
+    }
+    OpenMenu(){
+        menuManager.BindPoint(this);
+        this.pointMenu.style.display = this.pointMenu.style.display === 'flex' ? 'none' : 'flex';
+        this.moveMenu();
+    }
+    moveMenu(){
+        const rect = this.element.getBoundingClientRect();
+        let width = rect.width;
+        let height = rect.height;
+
+        this.pointMenu.style.position = 'absolute';
+        this.pointMenu.style.left = `${this.element.offsetLeft - this.pointMenu.offsetWidth / 2 + width / 2}px`;
+        this.pointMenu.style.top = `${this.element.offsetTop + this.element.offsetHeight + 10}px`;
+    }
+    // 删除航点
+    Delete(){
+        this.element.remove();
     }
 }
 
@@ -1049,6 +1121,7 @@ class MapManager{
         this.overlay.appendChild(this.mapContainer);
         document.body.appendChild(this.overlay);
         this.closeButton.addEventListener('click', this.closeMap.bind(this));
+        this.initMenu();
     }
     closeMap(){
         this.overlay.style.display = 'none';
@@ -1093,6 +1166,19 @@ class MapManager{
             y: (position.y - this.mapConfig.BasePoint.y) * scaleY
         }
         return realPoint;
+    }
+    initMenu(){
+        this.pointMenu = document.getElementById('pointMenu');
+        this.mapImageDiv.appendChild(this.pointMenu);
+    }
+    deletePoint(point){
+        this.pointList = this.pointList.filter(p => p !== point);
+        point.Delete();
+    }
+    reloadPoint(position, id, realPosition, color, text){
+        let point = new Point();
+        point.reconstruct(position, id, realPosition, color, text);
+        this.pointList.push(point);
     }
 }
 

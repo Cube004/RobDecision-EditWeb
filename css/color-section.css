@@ -103,6 +103,7 @@ body {
     gap: 12px;
 }
 
+
 .color-option {
     width: 36px;
     height: 36px;
@@ -331,6 +332,15 @@ select:hover {
     position: relative;
 }
 
+#pointColor > .color-picker-content{
+    left: -100%;
+}
+#pointMenu > #textProperties > .text-properties-content{
+    left: -205%;
+}
+#pointDelete > .delete-confirm-content{
+    left: -400%;
+}
 .color-picker-content {
     display: none;
     position: absolute;
@@ -344,6 +354,7 @@ select:hover {
     margin-left: 8px;
     z-index: 1000;
 }
+
 
 /* 添加一个透明的连接区域 */
 .color-picker-content::before {
@@ -460,7 +471,7 @@ select:hover {
     margin-bottom: 8px;
 }
 
-#node-text {
+.text-input-area {
     width: 100%;
     padding: 8px;
     border: 1px solid #e0e0e0;
@@ -493,7 +504,7 @@ select:hover {
     gap: 4px;
 }
 
-#font-size {
+.font-size {
     width: 60px;
     padding: 4px 8px;
     border: 1px solid #e0e0e0;

@@ -218,7 +218,7 @@ class MenuNode {
         
         // 添加文本属性相关的DOM引用
         this.textInput = document.getElementById('node-text');
-        this.fontSizeInput = document.getElementById('font-size');
+        this.fontSizeInput = document.getElementById('node-font-size');
         this.textColorOptions = document.querySelectorAll('#textProperties .color-option');
         
         // 修改圆角相关的DOM引用
@@ -579,13 +579,13 @@ class MenuEdge {
         this.conditionTypeOptions = document.querySelectorAll('input[name="condition-type"]');
         
         // 文本相关DOM引用
-        this.textInput = document.querySelector('#edgeMenu #node-text');
-        this.fontSizeInput = document.querySelector('#edgeMenu #font-size');
+        this.textInput = document.querySelector('#edgeMenu #edge-text');
+        this.fontSizeInput = document.querySelector('#edgeMenu #edge-font-size');
         this.textColorOptions = document.querySelectorAll('#edgeMenu #textProperties .color-option');
         
         // 删除按钮相关DOM引用
         this.deleteButton = document.getElementById('edge-delete-button');
-        this.confirmButton = document.querySelector('#delete-confirm-content .confirm-button');
+        this.confirmButton = document.querySelector('#edge-delete-confirm-content .confirm-button');
         
         // 自定义颜色相关DOM引用
         this.customColorSection = document.getElementById('edge-custom-color-section');
@@ -974,10 +974,285 @@ class MenuEdge {
     }
 }
 
+class MenuPoint{
+    constructor(){
+        this.menu = document.getElementById('pointMenu');
+        // 颜色选择
+        this.colorOptions = document.querySelectorAll('#pointColor .color-option');
+        this.colorIcon = document.querySelector('#pointColor .icon svg');
+
+        // 自定义颜色
+        this.customColorInput = document.getElementById('point-custom-color');
+        this.hexInput = document.getElementById('point-hex-value');
+        this.addColorButton = document.getElementById('point-add-color-button');
+
+        // 文本属性
+        this.textInput = document.querySelector('#pointMenu #point-text');
+        this.fontSizeInput = document.querySelector('#pointMenu #point-font-size');
+        this.textColorOptions = document.querySelectorAll('#pointMenu #textProperties .color-option');
+        // 删除按钮
+        this.confirmButton = document.getElementById('point-delete-confirm-button');
+
+        // 添加文本菜单的引用
+        this.textProperties = document.getElementById('pointMenu').querySelector('#textProperties');
+        this.textPropertiesContent = document.querySelector('#pointMenu .text-properties-content');
+        
+        
+        this.point = {
+            color: '#4285f4',
+            text: {
+                content: '航点',
+                color: '#000000',
+                size: 14
+            }
+        }
+        this.init();
+    }
+
+    init(){
+        // 初始化颜色选择事件
+        this.colorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                if (option.id === 'add-point-custom-color') {
+                    this.toggleCustomColorSection();
+                } else {
+                    this.selectColor(option);
+                }
+            });
+        });
+        
+        // 初始化文本输入事件
+        this.textInput.addEventListener('input', () => {
+            this.setText(this.textInput.value);
+        });
+        
+        // 初始化字体大小事件
+        this.fontSizeInput.addEventListener('input', () => {
+            this.setText(undefined, undefined, parseInt(this.fontSizeInput.value));
+        });
+        
+        // 初始化文本颜色选择事件
+        this.textColorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                this.setText(undefined, option.dataset.color);
+                // 更新选中状态
+                this.textColorOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+        
+        // 初始化删除确认按钮事件
+        this.confirmButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (this.selectedPoint) {
+                Manager.deletePoint(this.selectedPoint);
+                this.selectedPoint = null;
+            }
+            this.menu.style.display = 'none';
+        });
+        
+        // 初始化自定义颜色输入事件
+        this.customColorInput.addEventListener('input', () => {
+            this.hexInput.value = this.customColorInput.value.toUpperCase();
+        });
+        
+        // 初始化十六进制输入事件
+        this.hexInput.addEventListener('input', () => {
+            if (/^#[0-9A-F]{6}$/i.test(this.hexInput.value)) {
+                this.customColorInput.value = this.hexInput.value;
+            }
+        });
+        
+        // 初始化添加颜色按钮事件
+        this.addColorButton.addEventListener('click', () => {
+            this.addCustomColor();
+        });
+
+        // 添加文本属性悬停功能
+        this.initTextPropertiesHover();
+    }
+
+    initTextPropertiesHover() {
+        let isHovered = false;
+        let isComposing = false;
+        let closeTimeout = null;  // 添加延时变量
+        
+        // 监听输入法组合事件
+        this.textInput.addEventListener('compositionstart', () => {
+            isComposing = true;
+        });
+        
+        this.textInput.addEventListener('compositionend', () => {
+            isComposing = false;
+        });
+        
+        // 监听菜单项的hover
+        this.textProperties.addEventListener('mouseenter', () => {
+            if (closeTimeout) {
+                clearTimeout(closeTimeout);  // 清除延时关闭
+            }
+            isHovered = true;
+            this.textPropertiesContent.classList.add('show');
+        });
+        
+        this.textProperties.addEventListener('mouseleave', (e) => {
+            isHovered = false;
+            // 设置延时关闭
+            closeTimeout = setTimeout(() => {
+                if (!isHovered && !isComposing) {
+                    this.textPropertiesContent.classList.remove('show');
+                }
+            }, 100);  // 100ms的延迟
+        });
+        
+        // 监听内容区域的hover
+        this.textPropertiesContent.addEventListener('mouseenter', () => {
+            if (closeTimeout) {
+                clearTimeout(closeTimeout);  // 清除延时关闭
+            }
+            isHovered = true;
+        });
+        
+        this.textPropertiesContent.addEventListener('mouseleave', (e) => {
+            isHovered = false;
+            // 设置延时关闭
+            closeTimeout = setTimeout(() => {
+                if (!isHovered && !isComposing) {
+                    this.textPropertiesContent.classList.remove('show');
+                }
+            }, 100);  // 100ms的延迟
+        });
+        
+        // 监听文档点击，但在输入过程中不关闭
+        document.addEventListener('click', (e) => {
+            if (!isComposing && 
+                !this.textProperties.contains(e.target) && 
+                !this.textPropertiesContent.contains(e.target)) {
+                this.textPropertiesContent.classList.remove('show');
+            }
+        });
+    }
+
+    BindPoint(point){
+        this.selectedPoint = point;
+        if (point) {
+            this.updateFromPoint();
+            this.updateUI();
+        }
+    }
+
+    updateFromPoint(){
+        if (this.selectedPoint) {
+            this.point.color = this.selectedPoint.color;
+            this.point.text.content = this.selectedPoint.text.content;
+            this.point.text.color = this.selectedPoint.text.color;
+            this.point.text.size = this.selectedPoint.text.size;
+        }
+    }
+
+    updateUI() {
+        // 更新颜色选择器
+        this.updateColorSelection();
+        
+        // 更新文本输入
+        this.textInput.value = this.point.text.content;
+        
+        // 更新字体大小
+        this.fontSizeInput.value = this.point.text.size;
+        
+        // 更新文本颜色选择
+        this.updateTextColorSelection();
+    }
+
+    // 更新颜色选择器显示
+    updateColorSelection() {
+        // 移除之前的选中状态
+        this.colorOptions.forEach(option => option.classList.remove('selected'));
+        
+        // 查找匹配的预设颜色并选中
+        const matchedOption = Array.from(this.colorOptions)
+            .find(option => option.dataset.color === this.point.color);
+        
+        if (matchedOption) {
+            matchedOption.classList.add('selected');
+        }
+        
+        // 更新颜色图标
+        if (this.colorIcon) {
+            
+            this.colorIcon.style.fill = this.point.color;
+        }
+    }
+
+    // 更新文本颜色选择显示
+    updateTextColorSelection() {
+        // 移除之前的选中状态
+        this.textColorOptions.forEach(option => option.classList.remove('selected'));
+        
+        // 查找匹配的预设颜色并选中
+        const matchedOption = Array.from(this.textColorOptions)
+            .find(option => option.dataset.color === this.point.text.color);
+        
+        if (matchedOption) {
+            matchedOption.classList.add('selected');
+        }
+        
+        // 更新T图标颜色
+        const icon = document.querySelector(`#pointMenu svg[data-id="T-icon"]`);
+        if (icon) {
+            icon.style.fill = this.point.text.color;
+        }
+    }
+    
+    // 选择颜色
+    selectColor(option) {
+        // 移除之前的选中状态
+        this.colorOptions.forEach(opt => opt.classList.remove('selected'));
+        // 添加新的选中状态
+        option.classList.add('selected');
+        
+        this.point.color = option.dataset.color;
+        // 更新颜色图标
+        if (this.colorIcon) {
+            this.colorIcon.style.fill = this.point.color;
+        }
+        
+        this.updatePoint();
+    }
+
+    // 设置文本属性
+    setText(text, color, size) {
+        if (text !== undefined) this.point.text.content = text;
+        if (color !== undefined) {
+            this.point.text.color = color;
+            const icon = document.querySelector(`#pointMenu svg[data-id="T-icon"]`);
+            if (icon) {
+                icon.style.fill = color;
+            }
+        }
+        if (size !== undefined) this.point.text.size = size;
+        
+        this.updatePoint();
+    }
+
+    updatePoint(){
+        if (this.selectedPoint) {
+            // 更新颜色
+            this.selectedPoint.color = this.point.color;
+
+            // 更新文本属性
+            this.selectedPoint.text.content = this.point.text.content;
+            this.selectedPoint.text.color = this.point.text.color;
+            this.selectedPoint.text.size = this.point.text.size;
+            this.selectedPoint.UpdateView();
+        }
+    }
+}
 class MenuManager{
     constructor(){
         this.menuNode = new MenuNode();
         this.menuEdge = new MenuEdge();
+        this.menuPoint = new MenuPoint();
     }
 
     BindNode(node){
@@ -986,6 +1261,10 @@ class MenuManager{
 
     BindEdge(edge){
         this.menuEdge.BindEdge(edge);
+    }
+
+    BindPoint(point){
+        this.menuPoint.BindPoint(point);
     }
 }
 

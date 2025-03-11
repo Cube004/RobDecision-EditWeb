@@ -77,10 +77,10 @@ function Zoom(event){
 document.addEventListener('contextmenu', function(event) {
     event.preventDefault(); // 阻止默认行为,鼠标右键被屏蔽
     // 用于取消绘制返回选择功能
-    // const cursorButton = document.getElementById("cursor")
-    // if (cursorButton) {
-    //     cursorButton.click();
-    // }
+    const cursorButton = document.getElementById("cursor")
+    if (cursorButton) {
+        cursorButton.click();
+    }
 });
 
 export function showMap(button) {
