@@ -365,6 +365,7 @@ class Line {
         this.dasharray = `${this.dashWidth * state.scale * 2},${this.dashWidth * state.scale * 2}`;
         this.color = '#333';
         this.element = round ? this.createRoundedPath() : this.createPolyline();
+        this.elementBorder = round ? this.createRoundedPath() : this.createPolyline();
         if (this.FatherEdge) this.Addlistener();
     }
 
@@ -383,8 +384,12 @@ class Line {
             this.element.remove();
         }
         this.element = this.round ? this.createRoundedPath() : this.createPolyline();
+        this.elementBorder = this.round ? this.createRoundedPath() : this.createPolyline();
+        this.elementBorder.setAttribute('stroke-width', "20");
         this.Addlistener();
         this.FatherEdge.svg.appendChild(this.element);
+        this.FatherEdge.svg.appendChild(this.elementBorder);
+
     }
 
     createRoundedPath() {
@@ -454,19 +459,19 @@ class Line {
     }
 
     Addlistener(){
-        this.element.addEventListener('mouseover', () => {
+        this.elementBorder.addEventListener('mouseover', () => {
             this.FatherEdge.lineList.forEach(line => {
                 line.element.style.filter = 'drop-shadow(0px 0px 3px rgba(0,0,0,0.5))';
                 line.element.setAttribute('stroke-width', this.linewidth + 2);
             })
         });
-        this.element.addEventListener('mouseout', () => {
+        this.elementBorder.addEventListener('mouseout', () => {
             this.FatherEdge.lineList.forEach(line => {
                 line.element.style.filter = '';
                 line.element.setAttribute('stroke-width', this.linewidth);
             })
         })
-        this.element.addEventListener('click', () => {
+        this.elementBorder.addEventListener('click', () => {
             this.FatherEdge.OpenMenu();
         })
     }
@@ -498,8 +503,17 @@ class Edge{
         }
 
         this.condition = {
-            weight: 2,
-        }
+            nodeId: {
+                nodeIn: null,
+                nodeOut: null,
+            },
+            weight: null,
+            condition: [{
+                type: null,
+                min: null,
+                max: null
+            }]
+        };
 
         this.lineList = [];
         
@@ -671,6 +685,10 @@ class Edge{
     
         this.lineList.forEach(line => {
             line.element.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
+            line.elementBorder.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
+            line.elementBorder.setAttribute("fill", "none");
+            line.elementBorder.setAttribute("stroke-dasharray", "none");
+            line.elementBorder.setAttribute("stroke", "transparent");
         });
 
         this.EndpointsShow(Min.x, Min.y, padding);
@@ -684,6 +702,7 @@ class Edge{
         this.div.setAttribute('data-id', this.id);
         this.lineList.forEach((line, index) => {
             line.element.setAttribute('data-id', `${this.id}_${index}`);
+            line.elementBorder.setAttribute('data-id', `${this.id}_${index}`);
         })
         if(this.arrow){
             this.arrow.setAttribute('data-id', `${this.id}_Arrow`);

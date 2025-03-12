@@ -675,8 +675,18 @@ class MenuEdge {
         // 线条属性
         this.color = '#4285f4';
         this.width = 2;
-        this.condition = '';
-        this.conditionType = 'success';
+        this.condition = {
+            nodeId: {
+                nodeIn: null,
+                nodeOut: null,
+            },
+            weight: null,
+            condition: [{
+                type: null,
+                min: null,
+                max: null
+            }]
+        };
         this.text = '';
         this.textColor = '#000000';
         this.fontSize = 14;
@@ -719,6 +729,19 @@ class MenuEdge {
         this.textProperties = document.getElementById('edgeMenu').querySelector('#textProperties');
         this.textPropertiesContent = document.querySelector('#edgeMenu .text-properties-content');
         
+        // 条件菜单的引用
+        this.conditionEdgeId = document.getElementById('edge-id-text');
+        this.conditionNodeIn = document.getElementById('source-node-id');
+        this.conditionNodeOut = document.getElementById('target-node-id');
+        this.conditionWeight = document.getElementById('edge-priority');
+
+        this.conditionList = document.getElementById('condition-list');
+
+        this.conditionItem = document.querySelector('.condition-item');
+        this.conditionDataType = document.querySelector('.condition-data-type');
+        this.conditionRange = document.querySelector('.condition-range');
+        this.conditionActions = document.querySelector('.condition-actions');
+        this.addConditionItemButton = document.getElementById('add-condition-btn');
         this.init();
     }
     
@@ -756,19 +779,8 @@ class MenuEdge {
             this.reverseDirection();
         });
         
-        // 初始化条件输入事件
-        this.conditionInput.addEventListener('input', () => {
-            this.setCondition(this.conditionInput.value);
-        });
-        
-        // 初始化条件类型选择事件
-        this.conditionTypeOptions.forEach(option => {
-            option.addEventListener('change', () => {
-                if (option.checked) {
-                    this.setConditionType(option.value);
-                }
-            });
-        });
+        // 初始化条件菜单
+        this.initCondition();
         
         // 初始化文本输入事件
         this.textInput.addEventListener('input', () => {
@@ -883,6 +895,133 @@ class MenuEdge {
         });
     }
     
+    // 初始化条件菜单
+    initCondition(){
+        this.conditionWeight.addEventListener('change', () => {
+            // 这里其实还需要添加检测权重是否唯一
+            // Code
+            this.condition.weight = this.conditionWeight.value;
+        });
+
+        this.initConditionItem();
+    }
+
+    // 初始化条件项
+    initConditionItem(){
+        this.conditionDataType.value = null;
+        this.conditionDataType.addEventListener('change', () => {
+            console.log(this.conditionDataType.value);
+            this.changeCondition(0, {
+                type: this.conditionDataType.value,
+                min: null,
+                max: null
+            });
+        });
+
+        const minInput = this.conditionRange.querySelector('.condition-min');
+        const maxInput = this.conditionRange.querySelector('.condition-max');
+        
+        minInput.addEventListener('input', () => {
+            console.log('最小值', minInput.value);
+            this.changeCondition(0, {
+                type: null,
+                min: minInput.value,
+                max: null
+            });
+        });
+        
+        maxInput.addEventListener('input', () => {
+            console.log('最大值', maxInput.value);
+            this.changeCondition(0, {
+                type: null,
+                min: null,
+                max: maxInput.value
+            });
+        });
+        // 隐藏删除按钮
+        this.conditionActions.style.display = 'none';
+
+        // 添加条件项
+        this.addConditionItemButton.addEventListener('click', () => {
+            this.addConditionItem();
+        });
+    }
+
+    // 添加条件项
+    addConditionItem(){
+        const newItem = this.conditionItem.cloneNode(true);
+        newItem.dataset.id = document.querySelectorAll('.condition-item').length;
+        const conditionDataType = newItem.querySelector(".condition-data-type");
+        conditionDataType.value = null;
+        // 清空条件范围
+        const conditionRange = newItem.querySelector(".condition-range");
+        const minInput = conditionRange.querySelector('.condition-min');
+        const maxInput = conditionRange.querySelector('.condition-max');
+        minInput.value = null;
+        maxInput.value = null;
+
+        minInput.addEventListener('input', () => {
+            console.log('最小值', minInput.value);
+            this.changeCondition(newItem.dataset.id, {
+                type: null,
+                min: minInput.value,
+                max: null
+            });
+        });
+
+        maxInput.addEventListener('input', () => {
+            console.log('最大值', maxInput.value);
+            this.changeCondition(newItem.dataset.id, {
+                type: null,
+                min: null,
+                max: maxInput.value
+            });
+        });
+
+        conditionDataType.addEventListener('change', () => {
+            console.log('条件类型', conditionDataType.value);
+            this.changeCondition(newItem.dataset.id, {
+                type: conditionDataType.value,
+                min: null,
+                max: null
+            });
+        });
+
+        this.conditionList.appendChild(newItem);
+    }
+
+    // 更新条件
+    changeCondition(index, condition) {
+        console.log(index, condition);
+    
+        // 确保 index 是一个有效的索引
+        if (index < 0) {
+            console.error("Invalid index:", index);
+            return;
+        }
+    
+        // 如果 index 超出数组长度，扩展数组
+        while (index >= this.condition.condition.length) {
+            this.condition.condition.push({
+                type: null,
+                min: null,
+                max: null
+            });
+        }
+    
+        
+        // 获取当前条件对象（如果不存在则使用默认值）
+        const currentCondition = this.condition.condition[index] || { type: null, min: null, max: null };
+        
+        // 更新条件对象
+        this.condition.condition[index] = {
+            type: condition.type != null ? condition.type : currentCondition.type,
+            min: condition.min != null ? condition.min : currentCondition.min,
+            max: condition.max != null ? condition.max : currentCondition.max
+        };
+        console.log('条件状态', this.condition);
+    }
+    
     // 绑定选中的边
     BindEdge(edge) {
         this.selectedEdge = edge;
@@ -891,7 +1030,14 @@ class MenuEdge {
             this.updateUI();
         }
     }
-    
+    // 更新条件菜单
+    updateCondition(){
+        if (this.condition) {
+            this.conditionEdgeId.value = this.selectedEdge.id;
+            this.conditionNodeIn.value = this.selectedEdge.node.nodeIn == null ? '未连接' : this.selectedEdge.node.nodeIn.id;
+            this.conditionNodeOut.value = this.selectedEdge.node.nodeOut == null ? '未连接' : this.selectedEdge.node.nodeOut.id;
+        }
+    }
     // 从边更新菜单数据
     updateFromEdge() {
         if (this.selectedEdge) {
@@ -913,7 +1059,7 @@ class MenuEdge {
         this.updateWidthSelection();
         
         // 更新条件输入
-        this.conditionInput.value = this.condition;
+        this.updateCondition();
         
         // 更新条件类型
         this.conditionTypeOptions.forEach(option => {
@@ -1010,6 +1156,7 @@ class MenuEdge {
     reverseDirection() {
         if (this.selectedEdge) {
             this.selectedEdge.reverseDirection();
+            this.updateUI();
         }
     }
     

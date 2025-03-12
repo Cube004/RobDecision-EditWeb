@@ -15,6 +15,10 @@ body, html {
     height: 100%; */
 }
 
+/* 暂时隐藏自定义颜色 */
+#add-custom-color{
+    display: none;
+}
 /* 任务配置下拉菜单样式 - 增加缓冲区和显示控制 */
 .task-config-content {
   display: none;

@@ -11,11 +11,22 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     padding: 12px;
     position: absolute;
-    top: 100%;
-    left: 0;
+    top: 130%;
+    left: -100%;
     width: 220px;
     display: none;
     z-index: 1002;
+}
+
+/* 添加一个透明的连接区域 */
+.width-properties-content::before {
+    content: '';
+    position: absolute;
+    top: -20px;  /* 创建20px的缓冲区 */
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: transparent;
 }
 
 .menu-item > button:hover + .width-properties-content,
@@ -61,11 +72,22 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     padding: 12px;
     position: absolute;
-    top: 100%;
-    left: 0;
+    top: 130%;
+    left: -120%;
     width: 220px;
     display: none;
     z-index: 1002;
+}
+
+/* 添加一个透明的连接区域 */
+.direction-content::before {
+    content: '';
+    position: absolute;
+    top: -20px;  /* 创建20px的缓冲区 */
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: transparent;
 }
 
 .menu-item > button:hover + .direction-content,
@@ -84,13 +106,25 @@
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 12px;
+    padding: 16px;
     position: absolute;
-    top: 100%;
-    left: 0;
-    width: 250px;
+    top: 130%;
+    left: -350%;
+    width: 320px;
     display: none;
     z-index: 1002;
+    font-size: 14px;
+}
+
+/* 添加一个透明的连接区域 */
+.condition-properties-content::before {
+    content: '';
+    position: absolute;
+    top: -20px;  /* 创建20px的缓冲区 */
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: transparent;
 }
 
 .menu-item > button:hover + .condition-properties-content,
@@ -161,3 +195,201 @@
 .confirm-button:hover {
     background-color: #3367d6;
 }
+
+/* 条件部分 */
+.condition-section {
+    margin-bottom: 16px;
+}
+
+.condition-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.condition-label {
+    width: 80px;
+    color: #5f6368;
+    font-weight: 500;
+}
+
+.condition-field {
+    flex: 1;
+}
+
+.condition-field input[type="text"],
+.condition-field select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    background-color: #fff;
+}
+
+.condition-field input[readonly] {
+    background-color: #f8f9fa;
+    color: #5f6368;
+}
+
+/* 节点连接样式 */
+.node-connection {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.node-connection-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.node-label {
+    font-size: 12px;
+    color: #5f6368;
+}
+
+.connection-arrow {
+    font-size: 16px;
+    color: #5f6368;
+    margin: 0 4px;
+    margin-top: 16px;
+}
+
+/* 分隔线 */
+.condition-divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 16px 0;
+}
+
+/* 条件头部 */
+.condition-header {
+    margin-bottom: 12px;
+}
+
+.condition-header h3 {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #202124;
+}
+
+.condition-hint {
+    font-size: 12px;
+    color: #5f6368;
+}
+
+/* 条件列表 */
+.condition-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* 条件项 */
+.condition-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    border: 1px solid #eee;
+}
+
+.condition-type {
+    width: 90px;
+}
+
+.condition-range {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 4px;
+}
+
+.condition-data-type,
+.condition-min,
+.condition-max {
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-size: 13px;
+}
+
+.condition-data-type {
+    width: 100%;
+}
+
+.condition-min,
+.condition-max {
+    width: 100%;
+    text-align: center;
+}
+
+.range-separator {
+    color: #5f6368;
+    font-size: 12px;
+}
+
+.condition-actions {
+    display: flex;
+    align-items: center;
+}
+
+.remove-condition-btn {
+    background: none;
+    border: none;
+    color: #5f6368;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-condition-btn:hover {
+    background-color: #f1f3f4;
+    color: #ea4335;
+}
+
+/* 添加条件按钮 */
+.add-condition-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background-color: #f1f3f4;
+    color: #1a73e8;
+    border: 1px dashed #dadce0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    width: 100%;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-condition-btn:hover {
+    background-color: #e8f0fe;
+}
+
+
+/* 隐藏数字输入框的上下箭头 */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* 针对Firefox浏览器 */
+/* input[type="number"] {
+    -moz-appearance: textfield;
+} */
