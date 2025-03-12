@@ -296,7 +296,7 @@
                 <div class="color-option" style="background-color: #5f6368;" data-color="#5f6368"></div>
                 <div class="color-option" style="background-color: #4285f4;" data-color="#4285f4"></div>
                 <div class="color-option" style="background-color: #137333;" data-color="#137333"></div>
-                <div class="color-option" style="background-color: #ea4335;" data-color="#ea4335"></div>
+                <div class="color-option" style="background-color: #ea4435;" data-color="#ea4335"></div>
               </div>
             </div>
           </div>
@@ -313,6 +313,57 @@
             <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="DownBoldOutlined"><path d="m3.414 7.086-.707.707a1 1 0 0 0 0 1.414l7.778 7.778a2 2 0 0 0 2.829 0l7.778-7.778a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 0 0-1.415 0l-7.07 7.07-7.072-7.07a1 1 0 0 0-1.414 0Z" fill="currentColor"></path></svg>
           </div>
         </button>
+        
+        <div class="task-config-content">
+          <div class="config-section id-section">
+            <div class="config-label">节点ID</div>
+            <div class="config-field">
+              <input type="text" id="node-id-text" placeholder="自动生成" readonly>
+            </div>
+          </div>
+          
+          <div class="config-section node-type-section">
+            <div class="config-label">节点类别</div>
+            <div class="config-field button-group">
+              <button class="node-type-btn" data-type="root">
+                <span class="color-dot" style="background-color: #FFA500;"></span>
+                <span>根节点</span>
+              </button>
+              <button class="node-type-btn active" data-type="task">
+                <span class="color-dot" style="background-color: #4285f4;"></span>
+                <span>任务节点</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="config-section mode-section" id="node-mode-section">
+            <div class="config-label">运行模式</div>
+            <div class="config-field button-group">
+              <button class="mode-btn active" data-mode="navigation">
+                <span>导航模式</span>
+              </button>
+              <button class="mode-btn" data-mode="chase">
+                <span>追击模式</span>
+              </button>
+              <button class="mode-btn" data-mode="stay">
+                <span>原地停留</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="config-section waypoint-section" id="node-waypoint-section">
+            <div class="config-label">选择航点</div>
+            <div class="config-field">
+              <select id="waypoint-select">
+                <option value="">-- 请选择航点 --</option>
+                <option value="wp1">航点 1</option>
+                <option value="wp2">航点 2</option>
+                <option value="wp3">航点 3</option>
+                <option value="wp4">航点 4</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="menu-item" id="delete">

@@ -57,7 +57,6 @@ class ObjectManager{
         this.CheckConnection(edge)
     }
 
-
     deleteNode(id) {
         const button = document.querySelector(`button[data-id="${id}"]`);
         if (button) {
@@ -106,7 +105,7 @@ class ObjectManager{
                 shape: node.shape,
                 color: node.color,
                 text: node.text,
-                task: node.task
+                taskConfig: node.taskConfig
             })
         })
         let EdgeData = [];
@@ -170,7 +169,7 @@ class ObjectManager{
 
             // 加载节点
             data.Nodes.forEach(nodeData => {
-                let newNode = new Node(this.NodeContainerId, nodeData.id, nodeData.position, nodeData.shape, nodeData.color, nodeData.text, nodeData.task);
+                let newNode = new Node(this.NodeContainerId, nodeData.id, nodeData.position, nodeData.shape, nodeData.color, nodeData.text, nodeData.taskConfig);
                 this.NodeList.push(newNode);
             });
             
@@ -227,7 +226,7 @@ class ObjectManager{
 }
 
 class Node{
-    constructor(containerId, id, position, shape, color, text = null, task = null){
+    constructor(containerId, id, position, shape, color, text = null, taskConfig = null){
         this.containerId = containerId;
         this.id = id;
 
@@ -259,11 +258,13 @@ class Node{
                 fontFamily : 'Arial, sans-serif'
             }
         }
-        if (task != null){
-            this.task = task;
+        if (taskConfig != null){
+            this.taskConfig = taskConfig;
         }else{
-            this.task = {
-
+            this.taskConfig = {
+                nodeType: 'task',
+                mode: 'stay',
+                waypoint: null
             }
         }
         this.create();
@@ -307,7 +308,6 @@ class Node{
         this.UpdateView()
     }
 
-
     UpdateView(){        
         const button = document.querySelector(`button[data-id="${this.id}"]`)
         button.style.width = `${this.shape.width * state.scale}px`
@@ -328,7 +328,7 @@ class Node{
         button.style.fontFamily = this.text.fontFamily
     }
 
-    changeStyle(shape, color, text, task){
+    changeStyle(shape, color, text, taskConfig){
         this.shape = {
             width: shape.width == null ? this.shape.width : shape.width,
             height: shape.height == null ? this.shape.height : shape.height,
@@ -346,7 +346,7 @@ class Node{
             content: text.content == null ? this.text.content : text.content,
             fontFamily: text.fontFamily == null ? this.text.fontFamily : text.fontFamily
         };
-        this.task = task;
+        this.taskConfig = taskConfig;
         this.UpdateView()
     }
 
@@ -1076,7 +1076,6 @@ class MapManager{
             }
         }
     }
-
     init(){
         // 创建遮罩层
         this.overlay = document.createElement('div');

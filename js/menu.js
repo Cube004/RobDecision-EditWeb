@@ -213,6 +213,13 @@ class MenuNode {
         this.fontSize = 14;
         this.fontFamily = 'Arial';
         
+        // 任务配置
+        this.taskConfig = {
+            nodeType: null,
+            mode: null,
+            waypoint: null
+        }
+        
         // 当前选中的节点
         this.selectedNode = null;
         
@@ -250,10 +257,17 @@ class MenuNode {
             }
         });
 
+        // 任务配置菜单
+        this.nodeIdText = document.getElementById('node-id-text');
+        this.nodeTypeBtns = document.querySelectorAll('.node-type-btn');
+        this.modeBtns = document.querySelectorAll('.mode-btn');
+        this.waypointSelect = document.getElementById('waypoint-select');
+
         this.initTextProperties();
         this.initTextPropertiesHover();
         this.initBorderRadius();
         this.initDeleteConfirm();
+        this.initTaskConfig();
     }
     
     // 初始化文本编辑器
@@ -375,6 +389,110 @@ class MenuNode {
         });
     }
 
+    // 初始化任务配置菜单
+    initTaskConfig() {
+        this.nodeTypeBtns.forEach(btn => {
+            btn.addEventListener('click', (event) => {
+                this.nodeTypeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (btn.dataset.type == 'task') {
+                    // document.getElementById('node-waypoint-section').style.display = 'block';
+                    document.getElementById('node-mode-section').style.display = 'block';
+                    this.taskConfig.nodeType = btn.dataset.type;
+                }else{
+                    // 检测根节点是否唯一
+                    let rootUnique = true;
+                    Manager.NodeList.forEach(node =>{
+                        if(node.taskConfig.nodeType === 'root' && node != this.selectedNode){
+                            rootUnique = false;
+                            console.log(node);
+                            alert('根节点不能重复');
+                            return;
+                        }
+                    })
+                    if(rootUnique){
+                        document.getElementById('node-waypoint-section').style.display = 'none';
+                        document.getElementById('node-mode-section').style.display = 'none';
+                        this.taskConfig.nodeType = btn.dataset.type;
+                    }else{
+                        // 切换到任务节点
+                        document.querySelector('.node-type-btn[data-type="task"]').click();
+                    }
+                }
+                this.UpdateNode();
+            });
+        });
+
+        this.modeBtns.forEach(btn => {
+            btn.addEventListener('click', (event) => {
+                this.modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.taskConfig.mode = btn.dataset.mode;
+                if (this.taskConfig.mode == 'navigation') {
+                    document.getElementById('node-waypoint-section').style.display = 'block';
+                }else{
+                    document.getElementById('node-waypoint-section').style.display = 'none';
+                }
+                this.UpdateNode();
+            });
+        });
+
+        this.waypointSelect.addEventListener('change', (event) => {
+            this.taskConfig.waypoint = this.waypointSelect.value;
+            console.log(this.waypointSelect);
+            this.UpdateNode();
+        });
+    }
+
+    // 更新任务菜单显示
+    updateTaskConfig() {
+        this.nodeIdText.value = this.selectedNode.id;
+        
+        if (this.taskConfig.nodeType == 'task') {
+            document.querySelector('.node-type-btn[data-type="task"]').click();
+        }else{
+            document.querySelector('.node-type-btn[data-type="root"]').click();
+        }
+
+        if (this.taskConfig.mode == 'navigation') {
+            document.querySelector('.mode-btn[data-mode="navigation"]').click();
+        }else if(this.taskConfig.mode == 'chase'){
+            document.querySelector('.mode-btn[data-mode="chase"]').click();
+        }else if(this.taskConfig.mode == 'stay'){
+            document.querySelector('.mode-btn[data-mode="stay"]').click();
+        }
+
+        // 清除航点选项
+        for (let i = this.waypointSelect.options.length - 1; i > 0; i--) {
+            this.waypointSelect.remove(i);
+        }
+        // 添加航点选项
+        if (Manager.MapManager.pointList.length > 0) {
+            Manager.MapManager.pointList.forEach(point => {
+                let positionJson = JSON.stringify(point.realPosition);
+                this.waypointSelect.appendChild(new Option(point.text.content, positionJson));
+            });
+        }else{
+            console.log('no point');
+            this.waypointSelect.options[0].text = '---请先在地图上标记航点---';
+        }
+
+        if(this.taskConfig.waypoint){
+            let found = false;
+            for (let i = this.waypointSelect.options.length - 1; i > 0; i--) {
+                if(this.waypointSelect.options[i].value == this.taskConfig.waypoint){
+                    this.waypointSelect.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if(!found){
+                this.waypointSelect.selectedIndex = 0;
+                console.log('waypoint not found');
+            }
+        }
+    }
+
     // 更新选中的节点
     BindNode(node) {
         this.selectedNode = node;
@@ -383,6 +501,7 @@ class MenuNode {
             this.updateColorPickers();
             this.updateTextProperties();
             this.updateBorderRadius();
+            this.updateTaskConfig();
         }
     }
 
@@ -455,6 +574,9 @@ class MenuNode {
         this.textColor = this.selectedNode.text.color;
         this.fontSize = this.selectedNode.text.size;
         this.fontFamily = this.selectedNode.text.fontFamily;
+
+        // 任务配置
+        this.taskConfig = this.selectedNode.taskConfig;
     }
 
     // 更新圆角显示
@@ -505,9 +627,9 @@ class MenuNode {
                 fontFamily: this.fontFamily
             }
             
-            const task = null;
+            const taskConfig = this.taskConfig;
             // 触发节点更新
-            this.selectedNode.changeStyle(shape, color, text, task);
+            this.selectedNode.changeStyle(shape, color, text, taskConfig);
         }
     }
     
