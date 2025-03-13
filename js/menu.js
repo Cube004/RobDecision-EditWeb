@@ -459,7 +459,7 @@ class MenuNode {
                 this.taskConfig.resetTime = parseInt(this.customResetValue.value);
             }else{
                 document.getElementById('custom-reset-container').style.display = 'none';
-                this.taskConfig.resetTime = this.resetSelect.value;
+                this.taskConfig.resetTime = parseInt(this.resetSelect.value);
             }
             this.UpdateNode();
         });
@@ -513,6 +513,7 @@ class MenuNode {
         }
 
         // 更新冷数据重置
+        if(this.taskConfig.resetTime == null) this.taskConfig.resetTime = 10;
         this.resetSelect.selectedIndex = this.resetSelect.options.length - 1;
         for(let i = this.resetSelect.options.length - 1; i >= 0; i--){
             if(this.resetSelect.options[i].value == this.taskConfig.resetTime){
@@ -1131,8 +1132,8 @@ class MenuEdge {
     updateCondition(){
         if (this.condition) {
             this.conditionEdgeId.value = this.selectedEdge.id;
-            this.conditionNodeIn.value = this.selectedEdge.node.nodeIn == null ? '未连接' : this.selectedEdge.node.nodeIn.id;
-            this.conditionNodeOut.value = this.selectedEdge.node.nodeOut == null ? '未连接' : this.selectedEdge.node.nodeOut.id;
+            this.conditionNodeIn.value = this.condition.nodeId.nodeIn == null ? '未连接' : this.condition.nodeId.nodeIn;
+            this.conditionNodeOut.value = this.condition.nodeId.nodeOut == null ? '未连接' : this.condition.nodeId.nodeOut;
         }
 
         // 更新优先级
@@ -1181,6 +1182,8 @@ class MenuEdge {
             this.color = this.selectedEdge.LineStyle.color || '#4285f4';
             this.width = this.selectedEdge.LineStyle.width || 2;
             this.condition = this.selectedEdge.condition;
+            this.condition.nodeId.nodeIn = this.selectedEdge.node.nodeIn.id;
+            this.condition.nodeId.nodeOut = this.selectedEdge.node.nodeOut.id;
             this.text = this.selectedEdge.text.content || '';
             this.textColor = this.selectedEdge.text.color || '#000000';
             this.fontSize = this.selectedEdge.text.size || 14;
