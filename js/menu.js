@@ -954,7 +954,7 @@ class MenuEdge {
                 }
             });
             if (isUnique) {
-                this.condition.weight = this.conditionWeight.value;
+                this.condition.weight = parseInt(this.conditionWeight.value);
                 this.updateEdge();
             }
         });
@@ -1060,7 +1060,7 @@ class MenuEdge {
             console.log('最小值', minInput.value);
             this.changeCondition(newItem.dataset.id, {
                 type: null,
-                min: minInput.value,
+                min: parseInt(minInput.value),
                 max: null
             });
         });
@@ -1070,7 +1070,7 @@ class MenuEdge {
             this.changeCondition(newItem.dataset.id, {
                 type: null,
                 min: null,
-                max: maxInput.value
+                max: parseInt(maxInput.value)
             });
         });
 
