@@ -514,7 +514,7 @@ class MenuNode {
 
         // 更新冷数据重置
         this.resetSelect.selectedIndex = this.resetSelect.options.length - 1;
-        for(let i = this.resetSelect.options.length - 1; i > 0; i--){
+        for(let i = this.resetSelect.options.length - 1; i >= 0; i--){
             if(this.resetSelect.options[i].value == this.taskConfig.resetTime){
                 this.resetSelect.selectedIndex = i;
                 break;

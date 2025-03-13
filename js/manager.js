@@ -966,6 +966,7 @@ class Point{
         this.element.style.flexDirection = 'column';
         this.element.style.alignItems = 'center';
         this.element.style.justifyContent = 'center';
+        this.element.style.filter = 'drop-shadow(0px 4px 3px rgba(0,0,0,0.4)) drop-shadow(0px 8px 10px rgba(0,0,0,0.2))';
     
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         this.svg.setAttribute('width', 24);
@@ -975,6 +976,8 @@ class Point{
         this.path.setAttribute('d',"M528 32C325.056 32 160 196.8 160 399.36c0 75.2 22.656 147.584 65.024 208.48 2.112 3.648 4.256 7.168 6.784 10.592l268.608 353.472c7.296 8.096 17.088 12.576 27.584 12.576 10.368 0 20.224-4.512 28.768-14.08l267.36-352c2.624-3.52 4.896-7.36 6.112-9.6A364.864 364.864 0 0 0 896 399.36C896 196.8 730.912 32 528 32z m0 498.72a131.52 131.52 0 0 1-131.456-131.232 131.488 131.488 0 0 1 262.88 0 131.52 131.52 0 0 1-131.424 131.2z")
         this.path.setAttribute('fill', this.color);
         this.svg.appendChild(this.path);
+
+        
 
         this.IDtext = document.createElement('div');
         this.IDtext.textContent = `${this.id}`;
