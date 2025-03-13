@@ -1,6 +1,8 @@
 import state from "./script.js";
 import Manager from "./manager.js";
 
+
+
 class ColorPicker {
     constructor(options = {}) {
         const { type = 'fill' } = options;
@@ -217,7 +219,8 @@ class MenuNode {
         this.taskConfig = {
             nodeType: null,
             mode: null,
-            waypoint: null
+            waypoint: null,
+            resetTime: null
         }
         
         // 当前选中的节点
@@ -262,6 +265,8 @@ class MenuNode {
         this.nodeTypeBtns = document.querySelectorAll('.node-type-btn');
         this.modeBtns = document.querySelectorAll('.mode-btn');
         this.waypointSelect = document.getElementById('waypoint-select');
+        this.resetSelect = document.getElementById('reset-select');
+        this.customResetValue = document.getElementById('custom-reset-value');
 
         this.initTextProperties();
         this.initTextPropertiesHover();
@@ -396,7 +401,9 @@ class MenuNode {
                 this.nodeTypeBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 if (btn.dataset.type == 'task') {
-                    // document.getElementById('node-waypoint-section').style.display = 'block';
+                    if(this.taskConfig.mode){                    // 重新激活子菜单
+                        document.querySelector(`.mode-btn[data-mode="${this.taskConfig.mode}"]`).click();
+                    }
                     document.getElementById('node-mode-section').style.display = 'block';
                     this.taskConfig.nodeType = btn.dataset.type;
                 }else{
@@ -413,9 +420,10 @@ class MenuNode {
                     if(rootUnique){
                         document.getElementById('node-waypoint-section').style.display = 'none';
                         document.getElementById('node-mode-section').style.display = 'none';
+                        document.getElementById('node-reset-section').style.display = 'none';
                         this.taskConfig.nodeType = btn.dataset.type;
                     }else{
-                        // 切换到任务节点
+                        // 切换回任务节点
                         document.querySelector('.node-type-btn[data-type="task"]').click();
                     }
                 }
@@ -430,8 +438,10 @@ class MenuNode {
                 this.taskConfig.mode = btn.dataset.mode;
                 if (this.taskConfig.mode == 'navigation') {
                     document.getElementById('node-waypoint-section').style.display = 'block';
+                    document.getElementById('node-reset-section').style.display = 'block';
                 }else{
                     document.getElementById('node-waypoint-section').style.display = 'none';
+                    document.getElementById('node-reset-section').style.display = 'none';
                 }
                 this.UpdateNode();
             });
@@ -442,18 +452,28 @@ class MenuNode {
             console.log(this.waypointSelect);
             this.UpdateNode();
         });
+
+        this.resetSelect.addEventListener('change', (event) => {
+            if(event.target.value == 'custom'){
+                document.getElementById('custom-reset-container').style.display = 'flex';
+                this.taskConfig.resetTime = parseInt(this.customResetValue.value);
+            }else{
+                document.getElementById('custom-reset-container').style.display = 'none';
+                this.taskConfig.resetTime = this.resetSelect.value;
+            }
+            this.UpdateNode();
+        });
+
+        this.customResetValue.addEventListener('input', (event) => {
+            this.taskConfig.resetTime = parseInt(this.customResetValue.value);
+            this.UpdateNode();
+        });
     }
 
     // 更新任务菜单显示
     updateTaskConfig() {
         this.nodeIdText.value = this.selectedNode.id;
         
-        if (this.taskConfig.nodeType == 'task') {
-            document.querySelector('.node-type-btn[data-type="task"]').click();
-        }else{
-            document.querySelector('.node-type-btn[data-type="root"]').click();
-        }
-
         if (this.taskConfig.mode == 'navigation') {
             document.querySelector('.mode-btn[data-mode="navigation"]').click();
         }else if(this.taskConfig.mode == 'chase'){
@@ -472,8 +492,8 @@ class MenuNode {
                 let positionJson = JSON.stringify(point.realPosition);
                 this.waypointSelect.appendChild(new Option(point.text.content, positionJson));
             });
+            this.waypointSelect.options[0].text = '---请选择目标航点---';
         }else{
-            console.log('no point');
             this.waypointSelect.options[0].text = '---请先在地图上标记航点---';
         }
 
@@ -490,6 +510,28 @@ class MenuNode {
                 this.waypointSelect.selectedIndex = 0;
                 console.log('waypoint not found');
             }
+        }
+
+        // 更新冷数据重置
+        this.resetSelect.selectedIndex = this.resetSelect.options.length - 1;
+        for(let i = this.resetSelect.options.length - 1; i > 0; i--){
+            if(this.resetSelect.options[i].value == this.taskConfig.resetTime){
+                this.resetSelect.selectedIndex = i;
+                break;
+            }
+        }
+        if(this.resetSelect.selectedIndex == this.resetSelect.options.length - 1){
+            document.getElementById('custom-reset-container').style.display = 'flex';
+            document.getElementById('custom-reset-value').value = this.taskConfig.resetTime;
+        }else{
+            document.getElementById('custom-reset-container').style.display = 'none';
+        }
+
+        // 更新节点类型
+        if (this.taskConfig.nodeType == 'task') {
+            document.querySelector('.node-type-btn[data-type="task"]').click();
+        }else{
+            document.querySelector('.node-type-btn[data-type="root"]').click();
         }
     }
 
@@ -898,48 +940,81 @@ class MenuEdge {
     // 初始化条件菜单
     initCondition(){
         this.conditionWeight.addEventListener('change', () => {
-            // 这里其实还需要添加检测权重是否唯一
-            // Code
-            this.condition.weight = this.conditionWeight.value;
+            // 检测权重是否唯一
+            let isUnique = true;
+            Manager.EdgeList.forEach(edge => {
+                if (edge != this.selectedEdge && edge.condition.nodeId.nodeIn == this.condition.nodeId.nodeIn) {
+                    if (edge.condition.weight == this.conditionWeight.value) {
+                        isUnique = false;
+                        alert('不允许同一节点跳转权重重复');
+                        this.conditionWeight.selectedIndex = 0;
+                        return;
+                    }
+                }
+            });
+            if (isUnique) {
+                this.condition.weight = this.conditionWeight.value;
+                this.updateEdge();
+            }
         });
-
         this.initConditionItem();
     }
 
     // 初始化条件项
     initConditionItem(){
-        this.conditionDataType.value = null;
-        this.conditionDataType.addEventListener('change', () => {
-            console.log(this.conditionDataType.value);
-            this.changeCondition(0, {
-                type: this.conditionDataType.value,
-                min: null,
-                max: null
-            });
-        });
+        // 清空条件类型
+        for (let i = this.conditionDataType.options.length - 1; i >= 0; i--) {
+            this.conditionDataType.remove(i);
+        }
 
-        const minInput = this.conditionRange.querySelector('.condition-min');
-        const maxInput = this.conditionRange.querySelector('.condition-max');
-        
-        minInput.addEventListener('input', () => {
-            console.log('最小值', minInput.value);
-            this.changeCondition(0, {
-                type: null,
-                min: minInput.value,
-                max: null
+        // 获取规则
+        fetch('rules/rules.json')
+            .then(response => response.json())
+            .then(data => {
+                this.rules = data.rules;
+                this.rules.forEach(rule => {
+                    this.conditionDataType.options.add(new Option(rule.description, rule.type));
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching JSON:', error);
+                return;
             });
-        });
+
+        this.conditionDataType.value = null;
+        // this.conditionDataType.addEventListener('change', () => {
+        //     console.log(this.conditionDataType.value);
+        //     this.changeCondition(0, {
+        //         type: this.conditionDataType.value,
+        //         min: null,
+        //         max: null
+        //     });
+        // });
+
+        // const minInput = this.conditionRange.querySelector('.condition-min');
+        // const maxInput = this.conditionRange.querySelector('.condition-max');
         
-        maxInput.addEventListener('input', () => {
-            console.log('最大值', maxInput.value);
-            this.changeCondition(0, {
-                type: null,
-                min: null,
-                max: maxInput.value
-            });
-        });
-        // 隐藏删除按钮
-        this.conditionActions.style.display = 'none';
+        // minInput.addEventListener('input', () => {
+        //     console.log('最小值', minInput.value);
+        //     this.changeCondition(0, {
+        //         type: null,
+        //         min: minInput.value,
+        //         max: null
+        //     });
+        // });
+        
+        // maxInput.addEventListener('input', () => {
+        //     console.log('最大值', maxInput.value);
+        //     this.changeCondition(0, {
+        //         type: null,
+        //         min: null,
+        //         max: maxInput.value
+        //     });
+        // });
+
+        // this.conditionActions.addEventListener('click', () => {
+        //     this.addConditionItem();
+        // });
 
         // 添加条件项
         this.addConditionItemButton.addEventListener('click', () => {
@@ -947,16 +1022,36 @@ class MenuEdge {
         });
     }
 
+    // 移除条件项
+    removeConditionItem(OldItem){
+        OldItem.remove();
+        let condition = []
+        document.querySelectorAll(`.condition-item`).forEach((item,index) =>{
+            item.dataset.id = index;
+            let type = item.querySelector(".condition-data-type").value;
+            let min  = item.querySelector(".condition-range .condition-min").value;
+            let max  = item.querySelector(".condition-range .condition-max").value;
+            condition.push({
+                type: type,
+                min: min,
+                max: max
+            })
+        })
+        this.condition.condition = condition;
+        this.updateEdge();
+    }
+
     // 添加条件项
     addConditionItem(){
         const newItem = this.conditionItem.cloneNode(true);
         newItem.dataset.id = document.querySelectorAll('.condition-item').length;
         const conditionDataType = newItem.querySelector(".condition-data-type");
-        conditionDataType.value = null;
-        // 清空条件范围
         const conditionRange = newItem.querySelector(".condition-range");
         const minInput = conditionRange.querySelector('.condition-min');
         const maxInput = conditionRange.querySelector('.condition-max');
+        const deleteButton = newItem.querySelector(".remove-condition-btn");
+        // 清空条件范围
+        conditionDataType.value = null;
         minInput.value = null;
         maxInput.value = null;
 
@@ -987,6 +1082,9 @@ class MenuEdge {
             });
         });
 
+        deleteButton.addEventListener('click', ()=>{
+            this.removeConditionItem(newItem);
+        })
         this.conditionList.appendChild(newItem);
     }
 
@@ -1019,7 +1117,7 @@ class MenuEdge {
             min: condition.min != null ? condition.min : currentCondition.min,
             max: condition.max != null ? condition.max : currentCondition.max
         };
-        console.log('条件状态', this.condition);
+        this.updateEdge();
     }
     
     // 绑定选中的边
@@ -1027,7 +1125,6 @@ class MenuEdge {
         this.selectedEdge = edge;
         if (edge) {
             this.updateFromEdge();
-            this.updateUI();
         }
     }
     // 更新条件菜单
@@ -1037,17 +1134,58 @@ class MenuEdge {
             this.conditionNodeIn.value = this.selectedEdge.node.nodeIn == null ? '未连接' : this.selectedEdge.node.nodeIn.id;
             this.conditionNodeOut.value = this.selectedEdge.node.nodeOut == null ? '未连接' : this.selectedEdge.node.nodeOut.id;
         }
+
+        // 更新优先级
+        this.conditionWeight.selectedIndex = 0;
+        for (let i = this.conditionWeight.options.length - 1; i >= 0; i--) {
+            if(this.conditionWeight.options[i].value == this.condition.weight){
+                this.conditionWeight.selectedIndex = i;
+                break;
+            }
+        }
+        
+        
+        // 更新条件项
+        const updateConditionItem = (condition, index)=>{
+            let item = document.querySelector(`.condition-item[data-id="${index}"]`);
+            if (item) {
+                let conditionDataType = item.querySelector(".condition-data-type");
+                conditionDataType.value = null;
+                for (let i = conditionDataType.options.length - 1; i >= 0; i--) {
+                    if(conditionDataType.options[i].value == condition.type){
+                        conditionDataType.selectedIndex = i;
+                        break;
+                    }
+                }
+                const conditionRange = item.querySelector(".condition-range");
+                conditionRange.querySelector('.condition-min').value = condition.min;
+                conditionRange.querySelector('.condition-max').value = condition.max;
+            }else{
+                console.log("error not found item");
+            }
+        }
+
+        document.querySelectorAll(`.condition-item`).forEach(item =>{
+            item.remove();
+        })
+        this.condition.condition.forEach((condition, index) =>{
+            this.addConditionItem();
+        })
+        this.condition.condition.forEach((condition, index) =>{
+            updateConditionItem(condition, index);
+        })
     }
     // 从边更新菜单数据
     updateFromEdge() {
         if (this.selectedEdge) {
             this.color = this.selectedEdge.LineStyle.color || '#4285f4';
             this.width = this.selectedEdge.LineStyle.width || 2;
-            this.condition = this.selectedEdge.condition || '';
+            this.condition = this.selectedEdge.condition;
             this.text = this.selectedEdge.text.content || '';
             this.textColor = this.selectedEdge.text.color || '#000000';
             this.fontSize = this.selectedEdge.text.size || 14;
         }
+        this.updateUI();
     }
     
     // 更新UI显示
@@ -1202,6 +1340,8 @@ class MenuEdge {
             this.selectedEdge.text.content = this.text;
             this.selectedEdge.text.color = this.textColor;
             this.selectedEdge.text.size = this.fontSize;
+
+            this.selectedEdge.condition = this.condition;
             
             // 触发边更新
             this.selectedEdge.UpdateView();

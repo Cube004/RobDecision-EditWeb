@@ -264,7 +264,8 @@ class Node{
             this.taskConfig = {
                 nodeType: 'task',
                 mode: 'stay',
-                waypoint: null
+                waypoint: null,
+                resetTime: null
             }
         }
         this.create();
