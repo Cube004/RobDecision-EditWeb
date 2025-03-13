@@ -45,6 +45,10 @@ export function loadData(button){
 }
 
 function Zoom(event){
+    if(document.getElementById('pointMenu').style.display == "flex") return;
+    if(document.getElementById('nodeMenu').style.display == "flex") return;
+    if(document.getElementById('edgeMenu').style.display == "flex") return;
+
     state.lastScale = state.scale;
     
     var origin_pos = {

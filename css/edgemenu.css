@@ -282,14 +282,22 @@
     color: #5f6368;
 }
 
-/* 条件列表 */
+/* 条件列表 - 替代方案 */
 .condition-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin-bottom: 12px;
+    /* 保持一定的最大高度，但隐藏滚动条 */
     max-height: 200px;
     overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* 隐藏 Webkit 浏览器的滚动条 */
+.condition-list::-webkit-scrollbar {
+    display: none;
 }
 
 /* 条件项 */
