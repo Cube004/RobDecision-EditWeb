@@ -93,12 +93,19 @@ class ObjectManager{
     addLine(points){
         let isIntersect = false;
         this.EdgeList.forEach(Edge => {
+            if (points[0].x == Edge.Endpoints.In.x && points[0].y == Edge.Endpoints.In.y || points[0].x == Edge.Endpoints.Out.x && points[0].y == Edge.Endpoints.Out.y) {
+                return;
+            }
+            if (points[1].x == Edge.Endpoints.In.x && points[1].y == Edge.Endpoints.In.y || points[1].x == Edge.Endpoints.Out.x && points[1].y == Edge.Endpoints.Out.y) {
+                return;
+            }
             Edge.lineList.forEach(line => {
                 if (segmentsIntersect(points[0].x, points[0].y, points[1].x, points[1].y, line.points[0].x, line.points[0].y, line.points[1].x, line.points[1].y)) {
                     alert('禁止线段相交');
                     isIntersect = true;
                 }
             })
+        
         })
         if (isIntersect) return;
         let canMerge = false;
