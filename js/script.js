@@ -213,3 +213,35 @@ document.addEventListener('DOMContentLoaded', function() {
 // });
 // });
 // });
+function isHardwareAccelerated() {
+    try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (!gl) return false;
+
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        if (!debugInfo) return false;
+
+        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+
+        // 检查是否是软件渲染器
+        const isSoftwareRenderer = 
+            renderer.toLowerCase().includes('swiftshader') ||
+            renderer.toLowerCase().includes('llvmpipe') ||
+            renderer.toLowerCase().includes('software') ||
+            vendor.toLowerCase().includes('microsoft');
+
+        return !isSoftwareRenderer;
+    } catch (e) {
+        return false;
+    }
+}
+
+if (isHardwareAccelerated()) {
+    console.log('硬件加速: 已启用');
+} else {
+    alert('警告: 硬件加速已禁用, 可能导致性能下降');
+    alert('请在浏览器设置中启用硬件加速');
+}
+
