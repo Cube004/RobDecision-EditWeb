@@ -112,7 +112,6 @@ export class PreviewEdit {
         this.Line.listen = false;
         this.Line.isDrawing = false;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        console.log('移除DrawLine');
     }
 
     stopDrawRect() {
@@ -122,7 +121,6 @@ export class PreviewEdit {
         this.Rect.listen = false;
         this.Rect.isDrawing = false;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        console.log('移除DrawRect');
     }
 
     previewLine(e){

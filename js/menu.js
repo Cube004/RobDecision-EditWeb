@@ -534,6 +534,19 @@ class MenuNode {
         }else{
             document.querySelector('.node-type-btn[data-type="root"]').click();
         }
+
+        // 监听地图标点
+        const targetDiv = document.querySelector('.map-image-div');
+        const observer = new MutationObserver((mutationsList, observer) =>{
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'childList') {
+                    if (this.selectedNode) {
+                        this.updateTaskConfig();
+                    }
+                }
+            }
+        });
+        observer.observe(targetDiv, {childList: true, subtree: false});
     }
 
     // 更新选中的节点
@@ -725,7 +738,12 @@ class MenuEdge {
             },
             weight: null,
             condition: [{
-                type: null,
+                datetype: null,
+                metricType: 1, 
+                temporalScope: {
+                    type: 1,
+                    rollingWindow: null
+                },
                 min: null,
                 max: null
             }]
@@ -778,12 +796,12 @@ class MenuEdge {
         this.conditionNodeOut = document.getElementById('target-node-id');
         this.conditionWeight = document.getElementById('edge-priority');
 
+        // 条件列表
         this.conditionList = document.getElementById('condition-list');
 
+        // 条件项
         this.conditionItem = document.querySelector('.condition-item');
-        this.conditionDataType = document.querySelector('.condition-data-type');
-        this.conditionRange = document.querySelector('.condition-range');
-        this.conditionActions = document.querySelector('.condition-actions');
+
         this.addConditionItemButton = document.getElementById('add-condition-btn');
         this.init();
     }
@@ -964,58 +982,23 @@ class MenuEdge {
     // 初始化条件项
     initConditionItem(){
         // 清空条件类型
-        for (let i = this.conditionDataType.options.length - 1; i >= 0; i--) {
-            this.conditionDataType.remove(i);
+        const conditionDataType = document.querySelector('.condition-data-dataType');
+        for (let i = conditionDataType.options.length - 1; i >= 0; i--) {
+            conditionDataType.remove(i);
         }
-
         // 获取规则
         fetch('rules/rules.json')
             .then(response => response.json())
             .then(data => {
                 this.rules = data.rules;
                 this.rules.forEach(rule => {
-                    this.conditionDataType.options.add(new Option(rule.description, rule.type));
+                    conditionDataType.options.add(new Option(rule.description, rule.type));
                 });
             })
             .catch(error => {
                 console.error('Error fetching JSON:', error);
                 return;
             });
-
-        this.conditionDataType.value = null;
-        // this.conditionDataType.addEventListener('change', () => {
-        //     console.log(this.conditionDataType.value);
-        //     this.changeCondition(0, {
-        //         type: this.conditionDataType.value,
-        //         min: null,
-        //         max: null
-        //     });
-        // });
-
-        // const minInput = this.conditionRange.querySelector('.condition-min');
-        // const maxInput = this.conditionRange.querySelector('.condition-max');
-        
-        // minInput.addEventListener('input', () => {
-        //     console.log('最小值', minInput.value);
-        //     this.changeCondition(0, {
-        //         type: null,
-        //         min: minInput.value,
-        //         max: null
-        //     });
-        // });
-        
-        // maxInput.addEventListener('input', () => {
-        //     console.log('最大值', maxInput.value);
-        //     this.changeCondition(0, {
-        //         type: null,
-        //         min: null,
-        //         max: maxInput.value
-        //     });
-        // });
-
-        // this.conditionActions.addEventListener('click', () => {
-        //     this.addConditionItem();
-        // });
 
         // 添加条件项
         this.addConditionItemButton.addEventListener('click', () => {
@@ -1029,11 +1012,19 @@ class MenuEdge {
         let condition = []
         document.querySelectorAll(`.condition-item`).forEach((item,index) =>{
             item.dataset.id = index;
-            let type = item.querySelector(".condition-data-type").value;
+            let type = item.querySelector(".condition-data-dataType").value;
+            let metricType = item.querySelector(".condition-data-metricType").value;
+            let temporalScope = item.querySelector(".condition-temporal-controls").querySelector(".condition-data-temporalScope").value;
+            let rollingWindow = item.querySelector(".condition-temporal-controls").querySelector(".condition-data-rollingWindow").value;
             let min  = item.querySelector(".condition-range .condition-min").value;
             let max  = item.querySelector(".condition-range .condition-max").value;
             condition.push({
-                type: type,
+                datetype: type,
+                metricType: metricType,
+                temporalScope: {
+                    type: temporalScope,
+                    rollingWindow: rollingWindow
+                },
                 min: min,
                 max: max
             })
@@ -1046,20 +1037,82 @@ class MenuEdge {
     addConditionItem(){
         const newItem = this.conditionItem.cloneNode(true);
         newItem.dataset.id = document.querySelectorAll('.condition-item').length;
-        const conditionDataType = newItem.querySelector(".condition-data-type");
-        const conditionRange = newItem.querySelector(".condition-range");
+
+        const conditionDataType = newItem.querySelector(".condition-data-dataType");
+        const conditionMetricType = newItem.querySelector(".condition-data-metricType");
+        const conditionTemporal = newItem.querySelector(".condition-temporal-controls");
+        const conditionTemporalScope = conditionTemporal.querySelector(".condition-data-temporalScope");
+        const conditionRollingWindow = conditionTemporal.querySelector(".condition-data-rollingWindow");
+        const conditionRange = newItem.querySelector(".condition-range-controls");
         const minInput = conditionRange.querySelector('.condition-min');
         const maxInput = conditionRange.querySelector('.condition-max');
         const deleteButton = newItem.querySelector(".remove-condition-btn");
+        
         // 清空条件范围
         conditionDataType.value = null;
+        conditionMetricType.value = null;
+        conditionTemporalScope.value = null;
+        conditionRollingWindow.value = null;
         minInput.value = null;
         maxInput.value = null;
+
+        conditionMetricType.addEventListener('change', () => {
+            if (conditionMetricType.value == 1) {
+                conditionTemporalScope.value = null;
+                conditionRollingWindow.value = null;
+                conditionTemporal.style.display = 'none';
+                this.toggleBeforeElement('.condition-temporal', false);
+            }else{
+                conditionTemporal.style.display = 'flex';
+                this.toggleBeforeElement('.condition-temporal', true);
+            }
+            this.changeCondition(newItem.dataset.id, {
+                datetype: null,
+                metricType: conditionMetricType.value,
+                temporalScope: null,
+                min: null,
+                max: null
+            });
+        });
+        
+        conditionTemporalScope.addEventListener('change', () => {
+            if (conditionTemporalScope.value == 3) {
+                conditionRollingWindow.style.display = 'inline-block';
+            } else {
+                conditionRollingWindow.style.display = 'none';
+            }
+            this.changeCondition(newItem.dataset.id, {
+                datetype: null,
+                metricType: null,
+                temporalScope: {
+                    type: conditionTemporalScope.value,
+                    rollingWindow: conditionRollingWindow.value
+                },
+                min: null,
+                max: null
+            });
+        });
+
+        conditionRollingWindow.addEventListener('input', () => {
+            console.log('滚动窗口', conditionRollingWindow.value);
+            this.changeCondition(newItem.dataset.id, {
+                datetype: null,
+                metricType: null,
+                temporalScope: {
+                    type: conditionTemporalScope.value,
+                    rollingWindow: conditionRollingWindow.value
+                },
+                min: null,
+                max: null
+            });
+        });
 
         minInput.addEventListener('input', () => {
             console.log('最小值', minInput.value);
             this.changeCondition(newItem.dataset.id, {
-                type: null,
+                datetype: null,
+                metricType: null,
+                temporalScope: null,
                 min: parseInt(minInput.value),
                 max: null
             });
@@ -1068,7 +1121,9 @@ class MenuEdge {
         maxInput.addEventListener('input', () => {
             console.log('最大值', maxInput.value);
             this.changeCondition(newItem.dataset.id, {
-                type: null,
+                datetype: null,
+                metricType: null,
+                temporalScope: null,
                 min: null,
                 max: parseInt(maxInput.value)
             });
@@ -1077,7 +1132,9 @@ class MenuEdge {
         conditionDataType.addEventListener('change', () => {
             console.log('条件类型', conditionDataType.value);
             this.changeCondition(newItem.dataset.id, {
-                type: conditionDataType.value,
+                datetype: conditionDataType.value,
+                metricType: null,
+                temporalScope: null,
                 min: null,
                 max: null
             });
@@ -1102,7 +1159,9 @@ class MenuEdge {
         // 如果 index 超出数组长度，扩展数组
         while (index >= this.condition.condition.length) {
             this.condition.condition.push({
-                type: null,
+                datetype: null,
+                metricType: null,
+                temporalScope: null,
                 min: null,
                 max: null
             });
@@ -1114,13 +1173,28 @@ class MenuEdge {
         
         // 更新条件对象
         this.condition.condition[index] = {
-            type: condition.type != null ? condition.type : currentCondition.type,
+            datetype: condition.datetype != null ? condition.datetype : currentCondition.datetype,
+            metricType: condition.metricType != null ? condition.metricType : currentCondition.metricType,
+            temporalScope: condition.temporalScope != null ? condition.temporalScope : currentCondition.temporalScope,
             min: condition.min != null ? condition.min : currentCondition.min,
             max: condition.max != null ? condition.max : currentCondition.max
         };
         this.updateEdge();
     }
     
+    toggleBeforeElement(selector, show = true) {
+        const styleId = 'dynamic-pseudo-styles';
+        let styleTag = document.getElementById(styleId);
+        
+        if (!styleTag) {
+          styleTag = document.createElement('style');
+          styleTag.id = styleId;
+          document.head.appendChild(styleTag);
+        }
+      
+        const rule = `${selector}::before { display: ${show ? 'block' : 'none'} !important; }`;
+        styleTag.textContent = rule;
+      }
     // 绑定选中的边
     BindEdge(edge) {
         this.selectedEdge = edge;
@@ -1150,15 +1224,30 @@ class MenuEdge {
         const updateConditionItem = (condition, index)=>{
             let item = document.querySelector(`.condition-item[data-id="${index}"]`);
             if (item) {
-                let conditionDataType = item.querySelector(".condition-data-type");
+                let conditionDataType = item.querySelector(".condition-data-dataType");
                 conditionDataType.value = null;
                 for (let i = conditionDataType.options.length - 1; i >= 0; i--) {
-                    if(conditionDataType.options[i].value == condition.type){
+                    if(conditionDataType.options[i].value == condition.datetype){
                         conditionDataType.selectedIndex = i;
                         break;
                     }
                 }
-                const conditionRange = item.querySelector(".condition-range");
+                let conditionMetricType = item.querySelector(".condition-data-metricType");
+                conditionMetricType.value = condition.metricType;
+                if (condition.metricType == 1) {
+                    conditionMetricType.dispatchEvent(new Event('change'));
+                }
+
+                let conditionTemporalScope = item.querySelector(".condition-temporal-controls").querySelector(".condition-data-temporalScope");
+                conditionTemporalScope.value = condition.temporalScope.type;
+                if (condition.temporalScope.type == 3) {
+                    conditionTemporalScope.dispatchEvent(new Event('change'));
+                }
+
+                let conditionRollingWindow = item.querySelector(".condition-temporal-controls").querySelector(".condition-data-rollingWindow");
+                conditionRollingWindow.value = condition.temporalScope.rollingWindow;
+
+                let conditionRange = item.querySelector(".condition-range");
                 conditionRange.querySelector('.condition-min').value = condition.min;
                 conditionRange.querySelector('.condition-max').value = condition.max;
             }else{
@@ -1299,18 +1388,6 @@ class MenuEdge {
             this.selectedEdge.reverseDirection();
             this.updateUI();
         }
-    }
-    
-    // 设置条件
-    setCondition(condition) {
-        this.condition = condition;
-        this.updateEdge();
-    }
-    
-    // 设置条件类型
-    setConditionType(type) {
-        this.conditionType = type;
-        this.updateEdge();
     }
     
     // 设置文本属性

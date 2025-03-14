@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.getElementById('info').addEventListener('click', function() {
-        updateStatus('info', '版本信息 - 当前版本: 0.0.5', '<img src="css/版本信息提示.png" width="20px">');
+        updateStatus('info', '版本信息 - 当前版本: 0.0.10.0', '<img src="css/版本信息提示.png" width="20px">');
         // 这里可以添加显示版本信息的代码
     });
     
@@ -123,96 +123,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-// // 任务配置菜单的显示和隐藏控制
-// document.addEventListener('DOMContentLoaded', function() {
-//   const taskConfigButton = document.getElementById('taskConfig');
-//   const taskConfigContent = document.querySelector('.task-config-content');
-  
-//   let isMenuOpen = false;
-//   let timeoutId = null;
-  
-//   // 显示菜单
-//   function showMenu() {
-//     if (timeoutId) clearTimeout(timeoutId);
-//     isMenuOpen = true;
-//     taskConfigContent.style.display = 'block';
-//     taskConfigContent.style.visibility = 'visible';
-//     taskConfigContent.style.opacity = '1';
-//   }
-  
-//   // 隐藏菜单（带延迟）
-//   function hideMenu() {
-//     if (timeoutId) clearTimeout(timeoutId);
-//     timeoutId = setTimeout(() => {
-//       isMenuOpen = false;
-//       taskConfigContent.style.opacity = '0';
-//       setTimeout(() => {
-//         if (!isMenuOpen) {
-//           taskConfigContent.style.visibility = 'hidden';
-//           taskConfigContent.style.display = 'none';
-//         }
-//       }, 200);
-//     }, 300); // 300ms延迟，给用户足够时间移动到菜单上
-//   }
-  
-//   // 事件监听
-//   taskConfigButton.addEventListener('mouseenter', showMenu);
-//   taskConfigButton.addEventListener('mouseleave', hideMenu);
-//   taskConfigContent.addEventListener('mouseenter', showMenu);
-//   taskConfigContent.addEventListener('mouseleave', hideMenu);
-  
-//   // 点击按钮也应该显示/隐藏菜单
-//   taskConfigButton.addEventListener('click', function(e) {
-//     e.stopPropagation();
-//     if (isMenuOpen) {
-//       hideMenu();
-//     } else {
-//       showMenu();
-//     }
-//   });
-  
-//   // 点击其他区域隐藏菜单
-//   document.addEventListener('click', function() {
-//     if (isMenuOpen) {
-//       hideMenu();
-//     }
-//   });
-  
-//   // 防止在菜单内点击导致菜单关闭
-//   taskConfigContent.addEventListener('click', function(e) {
-//     e.stopPropagation();
-//   });
-  
-// 为节点类别和运行模式按钮添加点击事件
-// document.querySelectorAll('.node-type-btn').forEach(btn => {
-// btn.addEventListener('click', function() {
-//     document.querySelectorAll('.node-type-btn').forEach(b => b.classList.remove('active'));
-//     this.classList.add('active');
-//     console.log(this.dataset.type);
-//     if (this.dataset.type == 'task') {
-//     document.getElementById('node-waypoint-section').style.display = 'block';
-//     document.getElementById('node-mode-section').style.display = 'block';
-//     }else{
-//     document.getElementById('node-waypoint-section').style.display = 'none';
-//     document.getElementById('node-mode-section').style.display = 'none';
-//     }
-// });
-// });
-
-// document.querySelectorAll('.mode-btn').forEach(btn => {
-// btn.addEventListener('click', function() {
-//     document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-//     this.classList.add('active');
-//     console.log(this.dataset.mode);
-//     if (this.dataset.mode == 'navigation') {
-//     document.getElementById('node-waypoint-section').style.display = 'block';
-//     }else{
-//     document.getElementById('node-waypoint-section').style.display = 'none';
-//     }
-    
-// });
-// });
-// });
 function isHardwareAccelerated() {
     try {
         const canvas = document.createElement('canvas');

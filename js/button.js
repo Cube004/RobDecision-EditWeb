@@ -88,8 +88,6 @@ document.addEventListener('contextmenu', function(event) {
 });
 
 export function showMap(button) {
-    console.log('showMap');
-    
     Manager.MapManager.showMap();
 }
 
