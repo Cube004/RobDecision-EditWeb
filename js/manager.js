@@ -576,7 +576,12 @@ class Edge{
             },
             weight: null,
             condition: [{
-                type: null,
+                datetype: null,
+                metricType: 1, 
+                temporalScope: {
+                    type: 1,
+                    rollingWindow: null
+                },
                 min: null,
                 max: null
             }]
@@ -831,7 +836,6 @@ class Edge{
                 }else{
                     this.Endpoints.Out = EqualPoint(points[0], junction) === null ? points[0] : points[1];
                 }
-                console.log(this.Endpoints);
                 
                 round = areLinesPerpendicularOrParallel(points1, points2);
                 if(round){
@@ -1098,7 +1102,6 @@ class Point{
         
         let x = this.position.x / scaleX;
         let y = this.position.y / scaleY;
-        console.log('实际位置', this.position, '在地图上的位置', x, y, '缩放比例', scaleX, scaleY);
 
 
         this.element.style.left = `${x - this.element.offsetWidth / 2}px`;
@@ -1226,7 +1229,6 @@ class MapManager{
         // 获取图片的原始尺寸
         const naturalWidth = this.mapImage.naturalWidth;
         const naturalHeight = this.mapImage.naturalHeight;
-        console.log(naturalHeight, naturalWidth);
         
         // 计算缩放比例
         const scaleX = naturalWidth / displayWidth;
@@ -1237,9 +1239,13 @@ class MapManager{
             x: (event.offsetX) * scaleX,
             y: (event.offsetY) * scaleY
         }
-        
+        if (position.x > this.mapConfig.RightBottom.x || position.y > this.mapConfig.RightBottom.y || position.x < this.mapConfig.LeftTop.x || position.y < this.mapConfig.LeftTop.y) {
+            if (position.x > 100 || position.y > 100) {
+                alert('不在地图范围内');
+            }
+            return;
+        }
         this.addPoint(position);
-        console.log('在地图上的原始位置', position, '点击位置', event.offsetX, event.offsetY);
     }
     addPoint(position){
         let realPosition = this.getRealPoint(position);

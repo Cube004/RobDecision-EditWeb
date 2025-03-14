@@ -567,18 +567,42 @@
               <!-- 条件项 -->
               <div class="condition-item" data-id="0">
                 <div class="condition-type">
-                  <select class="condition-data-type">
+                  <select class="condition-data-dataType">
                     <option value="health">生命值</option>
                     <option value="energy">能量值</option>
                     <option value="distance">距离</option>
                     <option value="time">时间</option>
                   </select>
                 </div>
-                <div class="condition-range">
-                  <input type="number" class="condition-min" placeholder="最小值">
-                  <span class="range-separator">至</span>
-                  <input type="number" class="condition-max" placeholder="最大值">
+
+                <div class="condition-metric">
+                  <select class="condition-data-metricType">
+                    <option value="1">当前数值</option>
+                    <option value="2">累计增量</option>
+                    <option value="3">累计减量</option>
+                    <option value="4">历史存在</option>
+                  </select>
                 </div>
+
+                <div class="condition-temporal">
+                  <div class="condition-temporal-controls">
+                    <select class="condition-data-temporalScope">
+                      <option value="1">全周期</option>
+                      <option value="2">任务周期</option>
+                      <option value="3">临近周期</option>
+                    </select>
+                    <input type="number" class="condition-data-rollingWindow" placeholder="窗口值(秒)" style="font-size: 12px;">
+                  </div>
+                </div>
+
+                <div class="condition-range">
+                  <div class="condition-range-controls">
+                    <input type="number" class="condition-min" placeholder="最小值">
+                    <span class="range-separator">至</span>
+                    <input type="number" class="condition-max" placeholder="最大值">
+                  </div>
+                </div>
+                
                 <div class="condition-actions">
                   <button class="remove-condition-btn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
