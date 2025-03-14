@@ -144,7 +144,6 @@ export class PreviewEdit {
             } else {
                 this.Line.end = [this.Line.start[0], snapToGrid(e.offsetY)];
             }
-            if (this.Line.start[0] == this.Line.end[0] && this.Line.start[1] == this.Line.end[1]) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.setLineDash([5, 5]);
             ctx.strokeStyle = '#333';
@@ -155,6 +154,7 @@ export class PreviewEdit {
         }
     
         if (e.type === 'mousedown') {
+            if (this.Line.start[0] == this.Line.end[0] && this.Line.start[1] == this.Line.end[1]) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             // 循环绘制
             console.log(this.Line.start, this.Line.end);

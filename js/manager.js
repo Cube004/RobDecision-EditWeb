@@ -91,6 +91,35 @@ class ObjectManager{
     }
 
     addLine(points){
+        let isIntersect = false;
+        this.EdgeList.forEach(Edge => {
+            let isStart = false;
+            let isEnd = false;
+            if (points[0].x == Edge.Endpoints.In.x && points[0].y == Edge.Endpoints.In.y || points[0].x == Edge.Endpoints.Out.x && points[0].y == Edge.Endpoints.Out.y) {
+                isStart = true;
+            }
+            if (points[1].x == Edge.Endpoints.In.x && points[1].y == Edge.Endpoints.In.y || points[1].x == Edge.Endpoints.Out.x && points[1].y == Edge.Endpoints.Out.y) {
+                isEnd = true;
+            }
+            if (isStart && isEnd){
+                isIntersect = true;// 禁止线段两端点相连，标记为线段相交
+                return;
+            }
+            if (isStart || isEnd){
+                return;//只连接了线段的一端点，线段不相交
+            }
+            Edge.lineList.forEach(line => {
+                if (line.points.length == 2) {
+                    if (segmentsIntersect(points[0].x, points[0].y, points[1].x, points[1].y, line.points[0].x, line.points[0].y, line.points[1].x, line.points[1].y))
+                    {
+                        alert('禁止线段相交');
+                        isIntersect = true;
+                        return;
+                    }
+                }
+            })
+        })
+        if (isIntersect) return;
         let canMerge = false;
         let edge = null;
         this.EdgeList.forEach(Edge => {
@@ -433,8 +462,12 @@ class Line {
         if (this.element) {
             this.element.remove();
         }
+        if (this.elementBorder){
+            this.elementBorder.remove();
+        }
         this.element = this.round ? this.createRoundedPath() : this.createPolyline();
         this.elementBorder = this.round ? this.createRoundedPath() : this.createPolyline();
+        this.element.setAttribute('stroke-width', this.linewidth);
         this.elementBorder.setAttribute('stroke-width', "20");
         this.Addlistener();
         this.FatherEdge.svg.appendChild(this.element);
@@ -741,8 +774,6 @@ class Edge{
         this.lineList.forEach(line => {
             line.element.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
             line.elementBorder.setAttribute("transform", `translate(${(-Min.x + padding) * state.scale},${(-Min.y + padding) * state.scale})`);
-            line.elementBorder.setAttribute("fill", "none");
-            line.elementBorder.setAttribute("stroke-dasharray", "none");
             line.elementBorder.setAttribute("stroke", "transparent");
         });
 
