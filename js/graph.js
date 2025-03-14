@@ -45,10 +45,7 @@ function strokeRoundRect(ctx, x, y, width, height, radius, LineDash) {
     // 右边
     ctx.lineTo(x + width, y + height - radius);
     // 右下角
-    if(document.getElementById('pointMenu').style.display == "flex") return;
-    if(document.getElementById('nodeMenu').style.display == "flex") return;
-    if(document.getElementById('edgeMenu').style.display== "flex") return;
-
+    ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
     // 下边
     ctx.lineTo(x + radius, y + height);
     // 左下角
