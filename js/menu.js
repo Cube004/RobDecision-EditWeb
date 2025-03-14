@@ -847,12 +847,12 @@ class MenuEdge {
         
         // 初始化删除确认按钮事件
         this.confirmButton.addEventListener('click', (e) => {
+            this.menu.style.display = 'none';
             e.stopPropagation();
             if (this.selectedEdge) {
                 Manager.deleteEdge(this.selectedEdge);
                 this.selectedEdge = null;
             }
-            this.menu.style.display = 'none';
         });
         
         // 初始化自定义颜色输入事件
@@ -1181,9 +1181,9 @@ class MenuEdge {
         if (this.selectedEdge) {
             this.color = this.selectedEdge.LineStyle.color || '#4285f4';
             this.width = this.selectedEdge.LineStyle.width || 2;
-            this.condition = this.selectedEdge.condition;
-            this.condition.nodeId.nodeIn = this.selectedEdge.node.nodeIn.id;
-            this.condition.nodeId.nodeOut = this.selectedEdge.node.nodeOut.id;
+            this.condition = this.selectedEdge.condition || this.condition;
+            this.condition.nodeId.nodeIn = this.selectedEdge.node.nodeIn ? this.selectedEdge.node.nodeIn.id : null;
+            this.condition.nodeId.nodeOut = this.selectedEdge.node.nodeOut ? this.selectedEdge.node.nodeOut.id : null;
             this.text = this.selectedEdge.text.content || '';
             this.textColor = this.selectedEdge.text.color || '#000000';
             this.fontSize = this.selectedEdge.text.size || 14;

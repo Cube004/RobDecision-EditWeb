@@ -45,7 +45,10 @@ function strokeRoundRect(ctx, x, y, width, height, radius, LineDash) {
     // 右边
     ctx.lineTo(x + width, y + height - radius);
     // 右下角
-    ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+    if(document.getElementById('pointMenu').style.display == "flex") return;
+    if(document.getElementById('nodeMenu').style.display == "flex") return;
+    if(document.getElementById('edgeMenu').style.display== "flex") return;
+
     // 下边
     ctx.lineTo(x + radius, y + height);
     // 左下角
@@ -68,7 +71,11 @@ function strokeRoundRect(ctx, x, y, width, height, radius, LineDash) {
 
 export class PreviewEdit {
     constructor(parameters) {
-        
+        document.addEventListener('DOMContentLoaded',()=>{
+            this.canvas = state.canvases.operate;
+            this.ctx = this.canvas.getContext('2d');
+        })
+
         this.Line = {
             listen: false,
             isDrawing: false,
@@ -107,6 +114,7 @@ export class PreviewEdit {
         state.canvases.operate.removeEventListener('mousedown', this.boundPreviewLine);
         this.Line.listen = false;
         this.Line.isDrawing = false;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         console.log('移除DrawLine');
     }
 
@@ -116,12 +124,13 @@ export class PreviewEdit {
         state.canvases.operate.removeEventListener('mousemove', this.boundPreviewRect);
         this.Rect.listen = false;
         this.Rect.isDrawing = false;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         console.log('移除DrawRect');
     }
 
     previewLine(e){
-        let canvas = state.canvases.operate;
-        let ctx = canvas.getContext('2d');
+        let canvas = this.canvas;
+        let ctx = this.ctx;
 
         if (e.button === 2){ // 右键, 取消绘制
             this.Line.isDrawing = false;
@@ -140,7 +149,7 @@ export class PreviewEdit {
             } else {
                 this.Line.end = [this.Line.start[0], snapToGrid(e.offsetY)];
             }
-    
+            if (this.Line.start[0] == this.Line.end[0] && this.Line.start[1] == this.Line.end[1]) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.setLineDash([5, 5]);
             ctx.strokeStyle = '#333';
@@ -161,8 +170,8 @@ export class PreviewEdit {
     }
 
     previewRect(e){
-        let canvas = state.canvases.operate;
-        let ctx = canvas.getContext('2d');
+        let canvas = this.canvas;
+        let ctx = this.ctx;
 
         if (e.button === 2){ // 右键, 取消绘制
             this.Rect.isDrawing = false;

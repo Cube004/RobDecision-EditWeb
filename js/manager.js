@@ -2,6 +2,55 @@ import state from "./script.js";
 import menuManager from "./menu.js";
 import {previewEdit} from './graph.js';
 
+// 判断两条线段是否相交
+function segmentsIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+    const epsilon = 1e-10;
+    const dx1 = x2 - x1;
+    const dy1 = y2 - y1;
+    const dx2 = x4 - x3;
+    const dy2 = y4 - y3;
+    const denominator = dx2 * dy1 - dx1 * dy2;
+
+    if (Math.abs(denominator) > epsilon) {
+        const a = x3 - x1;
+        const b = y3 - y1;
+        const t = (-a * dy2 + dx2 * b) / denominator;
+        const s = (dx1 * b - dy1 * a) / denominator;
+        return t >= -epsilon && t <= 1 + epsilon && s >= -epsilon && s <= 1 + epsilon;
+    } else {
+        const crossABAC = dx1 * (y3 - y1) - dy1 * (x3 - x1);
+        if (Math.abs(crossABAC) > epsilon) return false;
+
+        const abIsPoint = Math.abs(dx1) + Math.abs(dy1) < epsilon;
+        const cdIsPoint = Math.abs(dx2) + Math.abs(dy2) < epsilon;
+        
+        if (abIsPoint) return cdIsPoint 
+            ? Math.abs(x1 - x3) < epsilon && Math.abs(y1 - y3) < epsilon 
+            : isPointOnSegment(x1, y1, x3, y3, x4, y4, epsilon);
+        
+        if (cdIsPoint) return isPointOnSegment(x3, y3, x1, y1, x2, y2, epsilon);
+
+        let tC, tD;
+        if (Math.abs(dx1) > Math.abs(dy1)) {
+            tC = (x3 - x1) / dx1;
+            tD = (x4 - x1) / dx1;
+        } else {
+            tC = (y3 - y1) / dy1;
+            tD = (y4 - y1) / dy1;
+        }
+        return Math.min(tC, tD) <= 1 + epsilon && Math.max(tC, tD) >= -epsilon;
+    }
+}
+
+function isPointOnSegment(x, y, x1, y1, x2, y2, epsilon) {
+    if (Math.abs((x - x1) * (y2 - y1) - (y - y1) * (x2 - x1)) > epsilon) return false;
+    const minX = Math.min(x1, x2) - epsilon;
+    const maxX = Math.max(x1, x2) + epsilon;
+    const minY = Math.min(y1, y2) - epsilon;
+    const maxY = Math.max(y1, y2) + epsilon;
+    return x >= minX && x <= maxX && y >= minY && y <= maxY;
+}
+
 class ObjectManager{
     constructor(){
         this.NodeContainerId = "nodeContainer";
@@ -42,6 +91,16 @@ class ObjectManager{
     }
 
     addLine(points){
+        let isIntersect = false;
+        this.EdgeList.forEach(Edge => {
+            Edge.lineList.forEach(line => {
+                if (segmentsIntersect(points[0].x, points[0].y, points[1].x, points[1].y, line.points[0].x, line.points[0].y, line.points[1].x, line.points[1].y)) {
+                    alert('禁止线段相交');
+                    isIntersect = true;
+                }
+            })
+        })
+        if (isIntersect) return;
         let canMerge = false;
         let edge = null;
         this.EdgeList.forEach(Edge => {
