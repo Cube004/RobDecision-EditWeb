@@ -1239,13 +1239,13 @@ class MenuEdge {
                 }
 
                 let conditionTemporalScope = item.querySelector(".condition-temporal-controls").querySelector(".condition-data-temporalScope");
-                conditionTemporalScope.value = condition.temporalScope.type;
-                if (condition.temporalScope.type == 3) {
+                conditionTemporalScope.value = condition.temporalScope ? condition.temporalScope.type : null;
+                if (conditionTemporalScope.value == 3) {
                     conditionTemporalScope.dispatchEvent(new Event('change'));
                 }
 
                 let conditionRollingWindow = item.querySelector(".condition-temporal-controls").querySelector(".condition-data-rollingWindow");
-                conditionRollingWindow.value = condition.temporalScope.rollingWindow;
+                conditionRollingWindow.value = condition.temporalScope ? condition.temporalScope.rollingWindow : null;
 
                 let conditionRange = item.querySelector(".condition-range");
                 conditionRange.querySelector('.condition-min').value = condition.min;

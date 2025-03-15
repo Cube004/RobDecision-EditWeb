@@ -5,26 +5,74 @@ function snapToGrid(value) {
     return Math.round(value / (state.gridSize * state.scale)) * (state.gridSize * state.scale);
 }
 
+// export function drawGrid(canvas) {
+//     if (!state.Grid) {
+//         return;
+//     }
+//     //在背景层绘制网格
+//     let ctx = canvas.getContext('2d');
+//     ctx.beginPath();
+//     ctx.strokeStyle = '#ddd';
+
+//     for (let x = 0; x <= canvas.width; x += state.gridSize * state.scale) {
+//         ctx.moveTo(x, 0);
+//         ctx.lineTo(x, canvas.height);
+//     }
+
+//     for (let y = 0; y <= canvas.height; y += state.gridSize * state.scale) {
+//         ctx.moveTo(0, y);
+//         ctx.lineTo(canvas.width, y);
+//     }
+//     ctx.stroke();
+// }
 export function drawGrid(canvas) {
     if (!state.Grid) {
         return;
     }
-    //在背景层绘制网格
-    let ctx = canvas.getContext('2d');
-
+    const ctx = canvas.getContext('2d');
+    const gridInterval = state.gridSize * state.scale;
+    const highlightInterval = 5; // 每5个格子高亮
+    
+    // 绘制普通网格线
     ctx.beginPath();
     ctx.strokeStyle = '#ddd';
-
-    for (let x = 0; x <= canvas.width; x += state.gridSize * state.scale) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+    
+    // 横向普通线
+    for (let x = 0; x <= canvas.width; x += gridInterval) {
+        if ((x / gridInterval) % highlightInterval !== 0) {
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+        }
     }
-
-    for (let y = 0; y <= canvas.height; y += state.gridSize * state.scale) {
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+    
+    // 纵向普通线
+    for (let y = 0; y <= canvas.height; y += gridInterval) {
+        if ((y / gridInterval) % highlightInterval !== 0) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+        }
     }
+    ctx.stroke();
 
+    // 绘制高亮网格线
+    ctx.beginPath();
+    ctx.strokeStyle = '#cbb';  // 更深的颜色
+    
+    // 横向高亮线
+    for (let x = 0; x <= canvas.width; x += gridInterval) {
+        if ((x / gridInterval) % highlightInterval === 0) {
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+        }
+    }
+    
+    // 纵向高亮线
+    for (let y = 0; y <= canvas.height; y += gridInterval) {
+        if ((y / gridInterval) % highlightInterval === 0) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+        }
+    }
     ctx.stroke();
 }
 
