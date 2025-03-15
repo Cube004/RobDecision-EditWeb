@@ -17,7 +17,7 @@ graph TD
 
 ### 跳转条件说明
 
-具体数据类型的值所对应的情况，详见裁判系统串口协议附录
+具体数据类型的值所对应的情况，详见[裁判系统串口协议附录](https://github.com/Cube004/RobDecision-EditWeb/blob/master/rules/RoboMaster%20%E8%A3%81%E5%88%A4%E7%B3%BB%E7%BB%9F%E4%B8%B2%E5%8F%A3%E5%8D%8F%E8%AE%AE%E9%99%84%E5%BD%95%20V1.7.0%EF%BC%8820241225%EF%BC%89.pdf)
 
 
 
