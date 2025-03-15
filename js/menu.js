@@ -1222,6 +1222,8 @@ class MenuEdge {
         
         // 更新条件项
         const updateConditionItem = (condition, index)=>{
+            console.log("conditions",condition);
+            
             let item = document.querySelector(`.condition-item[data-id="${index}"]`);
             if (item) {
                 let conditionDataType = item.querySelector(".condition-data-dataType");
@@ -1238,14 +1240,14 @@ class MenuEdge {
                     conditionMetricType.dispatchEvent(new Event('change'));
                 }
 
+                let conditionRollingWindow = item.querySelector(".condition-temporal-controls").querySelector(".condition-data-rollingWindow");
+                conditionRollingWindow.value = condition.temporalScope ? condition.temporalScope.rollingWindow : null;
+
                 let conditionTemporalScope = item.querySelector(".condition-temporal-controls").querySelector(".condition-data-temporalScope");
                 conditionTemporalScope.value = condition.temporalScope ? condition.temporalScope.type : null;
                 if (conditionTemporalScope.value == 3) {
                     conditionTemporalScope.dispatchEvent(new Event('change'));
                 }
-
-                let conditionRollingWindow = item.querySelector(".condition-temporal-controls").querySelector(".condition-data-rollingWindow");
-                conditionRollingWindow.value = condition.temporalScope ? condition.temporalScope.rollingWindow : null;
 
                 let conditionRange = item.querySelector(".condition-range");
                 conditionRange.querySelector('.condition-min').value = condition.min;
@@ -1292,9 +1294,9 @@ class MenuEdge {
         this.updateCondition();
         
         // 更新条件类型
-        this.conditionTypeOptions.forEach(option => {
-            option.checked = option.value === this.conditionType;
-        });
+        // this.conditionTypeOptions.forEach(option => {
+        //     option.checked = option.value === this.conditionType;
+        // });
         
         // 更新文本输入
         this.textInput.value = this.text;
