@@ -1068,7 +1068,7 @@ class MenuEdge {
             }
             this.changeCondition(newItem.dataset.id, {
                 datetype: null,
-                metricType: conditionMetricType.value,
+                metricType: parseInt(conditionMetricType.value),
                 temporalScope: null,
                 min: null,
                 max: null
@@ -1085,8 +1085,8 @@ class MenuEdge {
                 datetype: null,
                 metricType: null,
                 temporalScope: {
-                    type: conditionTemporalScope.value,
-                    rollingWindow: conditionRollingWindow.value
+                    type: parseInt(conditionTemporalScope.value),
+                    rollingWindow: parseInt(conditionRollingWindow.value)
                 },
                 min: null,
                 max: null
@@ -1099,8 +1099,8 @@ class MenuEdge {
                 datetype: null,
                 metricType: null,
                 temporalScope: {
-                    type: conditionTemporalScope.value,
-                    rollingWindow: conditionRollingWindow.value
+                    type: parseInt(conditionTemporalScope.value),
+                    rollingWindow: parseInt(conditionRollingWindow.value)
                 },
                 min: null,
                 max: null
