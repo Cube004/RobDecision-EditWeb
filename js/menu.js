@@ -1742,6 +1742,11 @@ class MenuManager{
         this.menuNode = new MenuNode();
         this.menuEdge = new MenuEdge();
         this.menuPoint = new MenuPoint();
+        state.canvases.storage.addEventListener('click', (e) => {
+            this.menuNode.menu.style.display = 'none';
+            this.menuEdge.menu.style.display = 'none';
+            this.menuPoint.menu.style.display = 'none';
+        });
     }
 
     BindNode(node){
