@@ -14,11 +14,11 @@
     },
     {
         "type": "own_base_HP",
-        "description": "己方基地"
+        "description": "己方基地血量"
     },
     {
         "type": "enemy_base_HP",
-        "description": "敌方基地"
+        "description": "敌方基地血量"
     },
     {
         "type": "event_data",
@@ -30,7 +30,7 @@
     },
     {
         "type": "vision_status",
-        "description": "检测敌方"
+        "description": "检测到敌方"
     },
     {
         "type": "armor_id",
@@ -42,7 +42,7 @@
     },
     {
         "type": "shoot_num",
-        "description": "射击次数"
+        "description": "剩余发弹量"
     },
     {
         "type": "rfid_status",
