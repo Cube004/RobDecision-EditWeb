@@ -1271,7 +1271,7 @@ class MapManager{
         let scaleY = this.mapConfig.Distance.y / (this.mapConfig.RightBottom.y - this.mapConfig.LeftTop.y);
         let realPoint = {
             x: (position.x - this.mapConfig.BasePoint.x) * scaleX,
-            y: (position.y - this.mapConfig.BasePoint.y) * scaleY
+            y: -1 * (position.y - this.mapConfig.BasePoint.y) * scaleY
         }
         return realPoint;
     }

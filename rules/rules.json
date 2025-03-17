@@ -47,6 +47,9 @@
     {
         "type": "rfid_status",
         "description": "RFID状态"
+    },{
+        "type": "last_task_id",
+        "description": "上一次任务ID"
     }
     ]
 }
