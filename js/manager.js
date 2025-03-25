@@ -1073,7 +1073,7 @@ class Point{
         this.IDtext.style.marginTop = '2px';
 
         this.PositionText = document.createElement('div');
-        this.PositionText.textContent = `(${this.realPosition.x.toFixed(1)},${this.realPosition.y.toFixed(1)})`;
+        this.PositionText.textContent = `(${this.realPosition.x.toFixed(2)},${this.realPosition.y.toFixed(2)})`;
         this.PositionText.style.textAlign = 'center';
         this.PositionText.style.fontFamily = 'Arial, sans-serif';
         this.PositionText.style.fontSize = '12px';
@@ -1253,6 +1253,8 @@ class MapManager{
             x: (event.offsetX) * scaleX,
             y: (event.offsetY) * scaleY
         }
+        console.log(position.x, position.y);
+        
         if (position.x > this.mapConfig.RightBottom.x || position.y > this.mapConfig.RightBottom.y || position.x < this.mapConfig.LeftTop.x || position.y < this.mapConfig.LeftTop.y) {
             if (position.x > 100 || position.y > 100) {
                 alert('不在地图范围内');

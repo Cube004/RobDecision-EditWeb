@@ -25,56 +25,116 @@ function snapToGrid(value) {
 //     }
 //     ctx.stroke();
 // }
+// export function drawGrid(canvas) {
+//     if (!state.Grid) {
+//         return;
+//     }
+//     const ctx = canvas.getContext('2d');
+//     const gridInterval = state.gridSize * state.scale;
+//     const highlightInterval = 5; // 每5个格子高亮
+    
+//     // 绘制普通网格线
+//     ctx.beginPath();
+//     ctx.strokeStyle = '#ddd';
+    
+//     // 横向普通线
+//     for (let x = 0; x <= canvas.width; x += gridInterval) {
+//         if ((x / gridInterval) % highlightInterval !== 0) {
+//             ctx.moveTo(x, 0);
+//             ctx.lineTo(x, canvas.height);
+//         }
+//     }
+    
+//     // 纵向普通线
+//     for (let y = 0; y <= canvas.height; y += gridInterval) {
+//         if ((y / gridInterval) % highlightInterval !== 0) {
+//             ctx.moveTo(0, y);
+//             ctx.lineTo(canvas.width, y);
+//         }
+//     }
+//     ctx.stroke();
+
+//     // 绘制高亮网格线
+//     ctx.beginPath();
+//     ctx.strokeStyle = '#cbb';  // 更深的颜色
+    
+//     // 横向高亮线
+//     for (let x = 0; x <= canvas.width; x += gridInterval) {
+//         if ((x / gridInterval) % highlightInterval === 0) {
+//             ctx.moveTo(x, 0);
+//             ctx.lineTo(x, canvas.height);
+//         }
+//     }
+    
+//     // 纵向高亮线
+//     for (let y = 0; y <= canvas.height; y += gridInterval) {
+//         if ((y / gridInterval) % highlightInterval === 0) {
+//             ctx.moveTo(0, y);
+//             ctx.lineTo(canvas.width, y);
+//         }
+//     }
+//     ctx.stroke();
+// }
 export function drawGrid(canvas) {
-    if (!state.Grid) {
-        return;
-    }
+    if (!state.Grid) return;
+    
     const ctx = canvas.getContext('2d');
     const gridInterval = state.gridSize * state.scale;
-    const highlightInterval = 5; // 每5个格子高亮
-    
-    // 绘制普通网格线
-    ctx.beginPath();
-    ctx.strokeStyle = '#ddd';
-    
-    // 横向普通线
-    for (let x = 0; x <= canvas.width; x += gridInterval) {
-        if ((x / gridInterval) % highlightInterval !== 0) {
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvas.height);
-        }
-    }
-    
-    // 纵向普通线
-    for (let y = 0; y <= canvas.height; y += gridInterval) {
-        if ((y / gridInterval) % highlightInterval !== 0) {
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
-        }
-    }
-    ctx.stroke();
+    const highlightStep = 5; // 高亮间隔
 
-    // 绘制高亮网格线
-    ctx.beginPath();
-    ctx.strokeStyle = '#cbb';  // 更深的颜色
-    
-    // 横向高亮线
-    for (let x = 0; x <= canvas.width; x += gridInterval) {
-        if ((x / gridInterval) % highlightInterval === 0) {
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvas.height);
+    // 清空画布
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 计算最大有效索引
+    const maxXIndex = Math.floor(canvas.width / gridInterval);
+    const maxYIndex = Math.floor(canvas.height / gridInterval);
+
+    // 绘制所有网格点
+    for (let xIndex = 0; xIndex <= maxXIndex; xIndex++) {
+        for (let yIndex = 0; yIndex <= maxYIndex; yIndex++) {
+            const x = xIndex * gridInterval;
+            const y = yIndex * gridInterval;
+            
+            // 判断是否需要高亮
+            const isHighlight = 
+                xIndex % highlightStep === 0 && 
+                yIndex % highlightStep === 0;
+
+            // 设置点样式
+            ctx.beginPath();
+            ctx.fillStyle = isHighlight ? '#ccc' : '#ddd';
+            ctx.arc(x, y, isHighlight ? 1.7 * state.scale : 1.2 * state.scale , 0, Math.PI * 2);
+            ctx.fill();
         }
     }
-    
-    // 纵向高亮线
-    for (let y = 0; y <= canvas.height; y += gridInterval) {
-        if ((y / gridInterval) % highlightInterval === 0) {
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
+
+    // 补充绘制边缘未达整数的点
+    [canvas.width, canvas.height].forEach(dim => {
+        const lastX = dim - (dim % gridInterval);
+        const lastY = dim - (dim % gridInterval);
+        
+        // 横向补充
+        if (dim % gridInterval !== 0) {
+            ctx.beginPath();
+            ctx.fillStyle = '#ddd';
+            ctx.arc(dim, 0, 1, 0, Math.PI * 2);
+            ctx.arc(dim, lastY, 1, 0, Math.PI * 2);
+            ctx.fill();
         }
-    }
-    ctx.stroke();
+
+        // 纵向补充
+        if (dim % gridInterval !== 0) {
+            ctx.beginPath();
+            ctx.fillStyle = '#ddd';
+            ctx.arc(0, dim, 1, 0, Math.PI * 2);
+            ctx.arc(lastX, dim, 1, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
 }
+
+
+
 
 function strokeRoundRect(ctx, x, y, width, height, radius, LineDash) {
     if (LineDash) {
